@@ -1,0 +1,25 @@
+services:
+
+  frontend:
+    image: nextjs
+    container_name: frontend
+    build: ./frontend
+    volumes:
+    - ./frontend:/app
+    - /app/node_modules
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - backend
+
+  backend:
+    image: fastify
+    container_name: backend
+    build: ./backend
+    volumes:
+    - ./backend:/app
+    # - /app/node_modules
+    restart: always
+    ports:
+      - 3030:3030
