@@ -17,8 +17,8 @@ export default function LoginForm() {
       loginBtn: "Se connecter",
       loading: "Connexion...",
       success: "✅ Connexion réussie !",
-      wrongCredentials: "Email ou mot de passe incorrect.",
-      serverError: "Erreur de connexion au serveur.",
+      wrongCredentials: "❌ Email ou mot de passe incorrect.",
+      default: "❌ Une erreur est survenue, réessayez plus tard."
     },
     en: {
       title: "Login",
@@ -29,8 +29,8 @@ export default function LoginForm() {
       loginBtn: "Login",
       loading: "Logging in...",
       success: "✅ Login successful!",
-      wrongCredentials: "Incorrect email or password.",
-      serverError: "Server connection error.",
+      wrongCredentials: "❌ Incorrect email or password.",
+      default: "❌ An error has occured, please try again later.",
     },
   }[currentLocale];
 
@@ -56,42 +56,46 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccess(false);
-    setServerError("");
 
     const validationErrors = validate();
     setErrors(validationErrors);
+    setSuccess(false);
 
+    // Si validation locale échoue → on ne tente pas le POST
     if (Object.keys(validationErrors).length > 0) return;
 
-    setLoading(true);
-
     try {
-      const res = await fakeLoginRequest(formData);
-      if (res.ok) {
-        setSuccess(true);
-        setFormData({ email: "", password: "" });
-      } else {
-        setServerError(res.message || t.wrongCredentials);
+      const res = await fetch("http://localhost:3030/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      // Si la réponse n’est pas OK → récupérer le message d’erreur
+      if (!res.ok) {
+        const message = t.wrongCredentials || t.default;
+        setServerError(message);
+        throw new Error(message);
       }
-    } catch (err) {
-      setServerError(t.serverError);
-    } finally {
-      setLoading(false);
+
+      // Succès → on reset le formulaire
+      setSuccess(true);
+      setErrors({});
+      setFormData({
+        username: "",
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+    } catch (err: any) {
+      // console.error("Signup error:", err);
+      setErrors({ general: err.message || "Erreur serveur." });
     }
   };
-
-  // Simulation d'un appel API
-  const fakeLoginRequest = (data: { email: string; password: string }) =>
-    new Promise<{ ok: boolean; message?: string }>((resolve) => {
-      setTimeout(() => {
-        if (data.email === "admin@site.com" && data.password === "admin123") {
-          resolve({ ok: true });
-        } else {
-          resolve({ ok: false, message: t.wrongCredentials });
-        }
-      }, 1000);
-    });
 
   return (
     <form
