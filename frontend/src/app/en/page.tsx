@@ -1,38 +1,101 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3030";
+const slides = [
+  {
+    title: "Discover Hypertube",
+    description:
+      "Hypertube is your ultimate platform to explore movies and series in streaming with a smooth and modern experience.",
+    // image: "/images/slide1.jpg",
+  },
+  {
+    title: "Simple Navigation",
+    description:
+      "Easily find your favorite movies and series thanks to our clear and intuitive interface.",
+    // image: "/images/slide2.jpg",
+  },
+  {
+    title: "Quick Sign Up",
+    description:
+      "Create an account in seconds and access all premium features.",
+    // image: "/images/slide3.jpg",
+  },
+];
+
 
 export default function Home() {
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const [message, setMessage] = useState("");
-
+  // Slide automatique toutes les 5 secondes
   useEffect(() => {
-    fetch(`${API_URL}/api/hello`)
-    .then((res) => res.json())
-    .then((data) => setMessage(data.message))
-    .catch((err) => console.error("ERROR API :", err));
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-between">
-      {/* Header */}
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <header className="w-full bg-black py-8 text-center">
-        <h1 className="text-6xl font-bold text-white">Hypertube</h1>
-      </header>
 
-      {/* Contenu central */}
-      <main className="flex-grow flex items-center justify-center">
-        <p className="text-gray-500 text-xl">          {message || "Loading..."}</p>
+      {/* Hero */}
+      <section className="relative w-full h-screen bg-black flex flex-col items-center justify-center text-center overflow-hidden">
+        <h1 className="text-6xl font-bold text-white mb-4">Hypertube</h1>
+        <p className="text-gray-300 text-xl max-w-2xl">
+          Explore, watch and share your favorite movies and series
+        </p>
+
+        {/* Slider */}
+        <div className="absolute bottom-16 w-full flex justify-center items-center space-x-4">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              className={`w-4 h-4 rounded-full transition ${
+                index === currentSlide ? "bg-yellow-400" : "bg-gray-500"
+              }`}
+              onClick={() => setCurrentSlide(index)}
+            />
+          ))}
+        </div>
+
+        <div className="absolute inset-0 -z-10">
+          {/* <img
+            src={slides[currentSlide].image}
+            alt={slides[currentSlide].title}
+            className="w-full h-full object-cover opacity-70"
+          /> */}
+          <div className="absolute inset-0 bg-black/40"></div>
+        </div>
+      </section>
+
+      {/* Sections explicatives */}
+      <main className="flex-grow bg-gray-900 text-white py-16 px-6">
+        <section className="max-w-5xl mx-auto space-y-16">
+          {slides.map((slide, idx) => (
+            <div
+              key={idx}
+              className="flex flex-col md:flex-row items-center md:space-x-8 space-y-4 md:space-y-0"
+            >
+              {/* <img
+                src={slide.image}
+                alt={slide.title}
+                className="w-full md:w-1/2 rounded-lg shadow-lg"
+              /> */}
+              <div className="md:w-1/2">
+                <h2 className="text-3xl font-bold text-yellow-400 mb-4">
+                  {slide.title}
+                </h2>
+                <p className="text-gray-300 text-lg">{slide.description}</p>
+              </div>
+            </div>
+          ))}
+        </section>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
-  )
+  );
 }

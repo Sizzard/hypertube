@@ -1,3 +1,5 @@
+import bcrypt from "bcrypt";
+
 export default async function signupRoutes(fastify, opts) {
     const pool = opts.pool;
     fastify.post("/signup", async (request, reply) => {
@@ -22,10 +24,14 @@ export default async function signupRoutes(fastify, opts) {
             if (existingEmail.rows.length > 0) {
                 return reply.code(409).send({error: "EMAIL_EXISTS"});
             }
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
+
             const result = await pool.query(
                 `INSERT INTO users (username, first_name, last_name, email, password) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
-                [username, firstName, lastName, email, password]
+                [username, firstName, lastName, email, hashedPassword]
             );
+            // console.log(`Password in db : ${hashedPassword}`);
             return reply.code(201).send({message: "USER_CREATED"});
         } catch (err) {
             fastify.log.error(err);

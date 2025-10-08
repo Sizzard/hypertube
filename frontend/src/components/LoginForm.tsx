@@ -28,7 +28,7 @@ export default function LoginForm() {
       requiredPassword: "Password is required.",
       loginBtn: "Login",
       loading: "Logging in...",
-      success: "✅ Login successful!",
+      success: "✅ Login successful !",
       wrongCredentials: "❌ Incorrect email or password.",
       default: "❌ An error has occured, please try again later.",
     },

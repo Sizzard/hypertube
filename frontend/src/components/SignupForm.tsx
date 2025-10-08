@@ -25,7 +25,7 @@ export default function SignupForm() {
       shortPassword: "Le mot de passe doit contenir au moins 6 caractères.",
       passwordsMismatch: "Les mots de passe ne correspondent pas.",
       submit: "S'inscrire",
-      success: "✅ Inscription réussie !",
+      success: "✅ Inscription réussie, vous pouvez maintenant vous connectez !",
       errors: {
         USER_EXISTS: "❌ Ce username existe déjà.",
         EMAIL_EXISTS: "❌ Cet email existe déjà.",
@@ -48,7 +48,7 @@ export default function SignupForm() {
       shortPassword: "Password must be at least 6 characters long.",
       passwordsMismatch: "Passwords do not match.",
       submit: "Sign Up",
-      success: "✅ Registration successful!",
+      success: "✅ Registration successful, you may now login !",
       errors: {
         USER_EXISTS: "❌ This username already exists.",
         EMAIL_EXISTS: "❌ This email already exists",
