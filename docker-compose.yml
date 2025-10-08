@@ -23,3 +23,20 @@ services:
     restart: always
     ports:
       - 3030:3030
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/hypertube
+
+  db:
+    image: postgres:15
+    container_name: hypertube-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: hypertube
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data

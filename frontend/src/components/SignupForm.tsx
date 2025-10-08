@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 export default function SignupForm() {
   const pathname = usePathname();
   const currentLocale = pathname?.startsWith("/en") ? "en" : "fr";
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3030";
 
   // Traductions FR / EN
   const t = {
@@ -24,6 +26,7 @@ export default function SignupForm() {
       passwordsMismatch: "Les mots de passe ne correspondent pas.",
       submit: "S'inscrire",
       success: "✅ Inscription réussie !",
+      errorRegistration: "Server connection error.",
     },
     en: {
       title: "Sign Up",
@@ -41,6 +44,7 @@ export default function SignupForm() {
       passwordsMismatch: "Passwords do not match.",
       submit: "Sign Up",
       success: "✅ Registration successful!",
+      errorRegistration: "Server connection error.",
     },
   }[currentLocale];
 
@@ -76,24 +80,41 @@ export default function SignupForm() {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
+    setSuccess(false);
 
-    if (Object.keys(validationErrors).length === 0) {
-      console.log("Form data submitted:", formData);
+    if (Object.keys(validationErrors).length > 0) return;
+
+    try {
+      const res = await fetch("http://localhost:3030/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur d’inscription.");
+      }
+
+      // Succès
       setSuccess(true);
       setFormData({
         username: "",
         firstName: "",
-        lastName : "",
+        lastName: "",
         email: "",
         password: "",
         confirmPassword: "",
       });
-    } else {
-      setSuccess(false);
+    } catch (err: any) {
+      console.error("Signup error:", err);
+      setErrors({ general: err.message || "Erreur serveur." });
     }
   };
 
@@ -191,6 +212,9 @@ export default function SignupForm() {
       >
         {t.submit}
       </button>
+      {errors.general && (
+        <p className="text-red-500 text-center mt-4 font-semibold">{errors.general}</p>
+      )}
 
       {/* Success message */}
       {success && (

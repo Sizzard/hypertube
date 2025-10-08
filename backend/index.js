@@ -2,6 +2,8 @@ import Fastify from 'fastify'
 import helloRoutes from './routes/hello.js'
 import cors from "@fastify/cors"
 import SignupRoute from './routes/signup.js';
+import pkg from "pg";
+const { Pool } = pkg;
 
 const fastify = Fastify({
   logger: true
@@ -9,8 +11,12 @@ const fastify = Fastify({
 
 await fastify.register(cors, { origin: '*'});
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
 await fastify.register(helloRoutes);
-await fastify.register(SignupRoute);
+await fastify.register(SignupRoute, {prefix: "/api", pool});
 
 const start = async () => {
   try {
