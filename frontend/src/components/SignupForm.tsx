@@ -26,7 +26,12 @@ export default function SignupForm() {
       passwordsMismatch: "Les mots de passe ne correspondent pas.",
       submit: "S'inscrire",
       success: "✅ Inscription réussie !",
-      errorRegistration: "Server connection error.",
+      errors: {
+        USER_EXISTS: "❌ Ce username existe déjà.",
+        EMAIL_EXISTS: "❌ Cet email existe déjà.",
+        MISSING_FIELDS: "❌ Tout les champs sont requis.",
+        default: "❌ Une erreur est survenue, réessayez plus tard.",
+      },
     },
     en: {
       title: "Sign Up",
@@ -44,7 +49,12 @@ export default function SignupForm() {
       passwordsMismatch: "Passwords do not match.",
       submit: "Sign Up",
       success: "✅ Registration successful!",
-      errorRegistration: "Server connection error.",
+      errors: {
+        USER_EXISTS: "❌ This username already exists.",
+        EMAIL_EXISTS: "❌ This email already exists",
+        MISSING_FIELDS: "❌ All fields are required.",
+        default: "❌ An error has occured, please try again later.",
+      },
     },
   }[currentLocale];
 
@@ -82,10 +92,12 @@ export default function SignupForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const validationErrors = validate();
     setErrors(validationErrors);
     setSuccess(false);
 
+    // Si validation locale échoue → on ne tente pas le POST
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
@@ -97,13 +109,17 @@ export default function SignupForm() {
         body: JSON.stringify(formData),
       });
 
+      // Si la réponse n’est pas OK → récupérer le message d’erreur
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Erreur d’inscription.");
+        const messageKey = data.error || "default" as keyof typeof t.errors;
+        const message = t.errors[messageKey] || t.errors.default;
+        throw new Error(message);
       }
 
-      // Succès
+      // Succès → on reset le formulaire
       setSuccess(true);
+      setErrors({});
       setFormData({
         username: "",
         firstName: "",
@@ -113,7 +129,7 @@ export default function SignupForm() {
         confirmPassword: "",
       });
     } catch (err: any) {
-      console.error("Signup error:", err);
+      // console.error("Signup error:", err);
       setErrors({ general: err.message || "Erreur serveur." });
     }
   };
