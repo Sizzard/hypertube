@@ -1,46 +1,106 @@
 "use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import SignupForm from "./SignupForm";
+import LoginForm from "./LoginForm";
+
+// Dictionnaires simples
+const translations = {
+  fr: {
+    films: "Films",
+    series: "Séries",
+    login: "Connexion",
+    signup: "Inscription",
+    home: "Accueil",
+    lang: "EN", // bouton pour changer vers EN
+  },
+  en: {
+    films: "Movies",
+    series: "Series",
+    login: "Login",
+    signup: "Sign Up",
+    home: "Home",
+    lang: "FR", // bouton pour revenir au FR
+  },
+};
 
 export default function Header() {
+  const [showSlide, setShowSlide] = useState(false);
+  const [slideType, setSlideType] = useState<"login" | "signup" | null>(null);
+  const pathname = usePathname();
+
+  // Déterminer la langue actuelle selon l'URL
+  const currentLocale = pathname?.startsWith("/en") ? "en" : "fr";
+  const t = translations[currentLocale];
+
+  const handleSlide = (type: "login" | "signup") => {
+    if (slideType === type && showSlide) {
+      setShowSlide(false);
+    } else {
+      setSlideType(type);
+      setShowSlide(true);
+    }
+  };
+
+  // Générer le lien pour basculer de langue (préfixe /fr ou /en)
+  const toggleLocale =
+    currentLocale === "fr"
+      ? pathname.replace(/^\/fr/, "/en") || `/en${pathname}`
+      : pathname.replace(/^\/en/, "/fr") || `/fr${pathname}`;
+
   return (
-    <header className="w-full bg-gray-900 text-white shadow-md">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link href="/">
-              <h1 className="text-2xl font-bold tracking-tight text-yellow-400">
-                Hypertube
-              </h1>
-            </Link>
-          </div>
+    <header className="w-full bg-gray-900 text-white shadow-md relative">
+      <div className="flex justify-between items-center h-16 px-6">
+        {/* Logo */}
+        <Link href={currentLocale === "en" ? "/en" : "/fr"} className="hover:text-yellow-300 transition">
+          <h1 className="text-2xl font-bold text-yellow-400">Hypertube</h1>
+        </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex space-x-6">
-            <Link href="/films" className="hover:text-yellow-400 transition">
-              Films
-            </Link>
-            <Link href="/series" className="hover:text-yellow-400 transition">
-              Séries
-            </Link>
-          </nav>
+        {/* Navigation principale */}
+        <nav className="hidden md:flex space-x-6">
+          <Link href={`/${currentLocale}/films`} className="hover:text-yellow-400 transition">
+            {t.films}
+          </Link>
+          <Link href={`/${currentLocale}/series`} className="hover:text-yellow-400 transition">
+            {t.series}
+          </Link>
+        </nav>
 
-          {/* Boutons / actions */}
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/login"
-              className="bg-yellow-400 text-gray-900 px-3 py-1 rounded hover:bg-yellow-300 transition"
-            >
-              Connexion
-            </Link>
-            <Link
-              href="/signup"
-              className="border border-yellow-400 px-3 py-1 rounded hover:bg-yellow-400 hover:text-gray-900 transition"
-            >
-              Inscription
-            </Link>
-          </div>
-        </div>
+        {/* Actions utilisateur */}
+        <nav className="flex space-x-4 items-center">
+          <button
+            onClick={() => handleSlide("login")}
+            className="bg-yellow-400 text-gray-900 px-3 py-1 rounded hover:bg-yellow-300 transition"
+          >
+            {t.login}
+          </button>
+          <button
+            onClick={() => handleSlide("signup")}
+            className="border border-yellow-400 px-3 py-1 rounded hover:bg-yellow-400 hover:text-gray-900 transition"
+          >
+            {t.signup}
+          </button>
+
+          {/* Switcher de langue */}
+          <Link
+            href={toggleLocale}
+            className="ml-4 text-sm text-gray-400 hover:text-yellow-400 transition"
+          >
+            {t.lang}
+          </Link>
+        </nav>
+      </div>
+
+      {/* Slide Panel */}
+      <div
+        className={`absolute left-0 top-16 w-full bg-gray-800 text-white transition-all duration-500 overflow-hidden ${
+          showSlide ? "max-h-[100vh] p-6" : "max-h-0 p-0"
+        }`}
+      >
+        {slideType === "login" && <LoginForm />}
+        {slideType === "signup" && <SignupForm />}
       </div>
     </header>
   );

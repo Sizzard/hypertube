@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 import helloRoutes from './routes/hello.js'
 import cors from "@fastify/cors"
+import SignupRoute from './routes/signup.js';
 
 const fastify = Fastify({
   logger: true
@@ -9,6 +10,7 @@ const fastify = Fastify({
 await fastify.register(cors, { origin: '*'});
 
 await fastify.register(helloRoutes);
+await fastify.register(SignupRoute);
 
 const start = async () => {
   try {
