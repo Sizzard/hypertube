@@ -7,7 +7,6 @@ export default function SignupForm() {
   const currentLocale = pathname?.startsWith("/en") ? "en" : "fr";
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:3030";
-
   // Traductions FR / EN
   const t = {
     fr: {

@@ -2,6 +2,8 @@ import Fastify from 'fastify'
 import cors from "@fastify/cors"
 import SignupRoute from './routes/signup.js';
 import LoginRoute from './routes/login.js';
+import VerifyRoute from './routes/verify-token.js';
+import Ping from './routes/ping.js'
 import pkg from "pg";
 const { Pool } = pkg;
 
@@ -15,6 +17,8 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+await fastify.register(Ping);
+await fastify.register(VerifyRoute, {prefix : "/api"})
 await fastify.register(SignupRoute, {prefix: "/api", pool});
 await fastify.register(LoginRoute, {prefix: "/api", pool});
 

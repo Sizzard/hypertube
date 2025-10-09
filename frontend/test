@@ -1,0 +1,1 @@
+https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-afb6aab63af696126c52fa68246bcf22a42eccb0817ff298e6ff8ddab74b27e3&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Fcallback&response_type=code

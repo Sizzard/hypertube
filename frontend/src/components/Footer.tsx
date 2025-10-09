@@ -7,12 +7,7 @@ export default function Footer() {
   const pathname = usePathname();
 
   const currentLocale = pathname?.startsWith("/en") ? "en" : "fr";
-
-  const toggleLocale =
-  currentLocale === "fr"
-    ? pathname.replace(/^\/fr/, "/en") || `/en${pathname}`
-    : pathname.replace(/^\/en/, "/fr") || `/fr${pathname}`;
-
+  
   return (
     <footer className="w-full bg-gray-900 text-gray-400 py-4 mt-auto border-t border-gray-800">
       <div className="text-center text-sm">

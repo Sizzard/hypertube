@@ -1,0 +1,1 @@
+cd backend && npm install fastify && npm install jsonwebtoken

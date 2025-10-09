@@ -1,39 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import SignupForm from "./SignupForm";
 import LoginForm from "./LoginForm";
 
-// Dictionnaires simples
 const translations = {
   fr: {
     films: "Films",
     series: "Séries",
     login: "Connexion",
     signup: "Inscription",
+    logout: "Déconnexion",
     home: "Accueil",
-    lang: "EN", // bouton pour changer vers EN
+    lang: "EN",
   },
   en: {
     films: "Movies",
     series: "Series",
     login: "Login",
     signup: "Sign Up",
+    logout: "Logout",
     home: "Home",
-    lang: "FR", // bouton pour revenir au FR
+    lang: "FR",
   },
 };
 
 export default function Header() {
   const [showSlide, setShowSlide] = useState(false);
   const [slideType, setSlideType] = useState<"login" | "signup" | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
-  // Déterminer la langue actuelle selon l'URL
   const currentLocale = pathname?.startsWith("/en") ? "en" : "fr";
   const t = translations[currentLocale];
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   const handleSlide = (type: "login" | "signup") => {
     if (slideType === type && showSlide) {
@@ -44,7 +51,12 @@ export default function Header() {
     }
   };
 
-  // Générer le lien pour basculer de langue (préfixe /fr ou /en)
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    router.push(`/${currentLocale}`); // redirige vers l’accueil
+  };
+
   const toggleLocale =
     currentLocale === "fr"
       ? pathname.replace(/^\/fr/, "/en") || `/en${pathname}`
@@ -54,7 +66,10 @@ export default function Header() {
     <header className="w-full bg-gray-900 text-white shadow-md relative">
       <div className="flex justify-between items-center h-16 px-6">
         {/* Logo */}
-        <Link href={currentLocale === "en" ? "/en" : "/fr"} className="hover:text-yellow-300 transition">
+        <Link
+          href={currentLocale === "en" ? "/en" : "/fr"}
+          className="hover:text-yellow-300 transition"
+        >
           <h1 className="text-2xl font-bold text-yellow-400">Hypertube</h1>
         </Link>
 
@@ -70,18 +85,29 @@ export default function Header() {
 
         {/* Actions utilisateur */}
         <nav className="flex space-x-4 items-center">
-          <button
-            onClick={() => handleSlide("login")}
-            className="bg-yellow-400 text-gray-900 px-3 py-1 rounded hover:bg-yellow-300 transition"
-          >
-            {t.login}
-          </button>
-          <button
-            onClick={() => handleSlide("signup")}
-            className="border border-yellow-400 px-3 py-1 rounded hover:bg-yellow-400 hover:text-gray-900 transition"
-          >
-            {t.signup}
-          </button>
+          {!isLoggedIn ? (
+            <>
+              <button
+                onClick={() => handleSlide("login")}
+                className="bg-yellow-400 text-gray-900 px-3 py-1 rounded hover:bg-yellow-300 transition"
+              >
+                {t.login}
+              </button>
+              <button
+                onClick={() => handleSlide("signup")}
+                className="border border-yellow-400 px-3 py-1 rounded hover:bg-yellow-400 hover:text-gray-900 transition"
+              >
+                {t.signup}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400 transition"
+            >
+              {t.logout}
+            </button>
+          )}
 
           {/* Switcher de langue */}
           <Link

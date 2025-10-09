@@ -72,7 +72,15 @@ export default function LoginForm() {
         },
         body: JSON.stringify(formData),
       });
+      const data = await res.json();
 
+      if (res.ok && data.token) {
+        localStorage.setItem("token", data.token);
+        console.log("User connected:", data);
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      }
       // Si la réponse n’est pas OK → récupérer le message d’erreur
       if (!res.ok) {
         const message = t.wrongCredentials || t.default;
@@ -95,6 +103,17 @@ export default function LoginForm() {
       // console.error("Signup error:", err);
       setErrors({ general: err.message || "Erreur serveur." });
     }
+  };
+
+  const handle42Connect = () => {
+    const redirectUrl = process.env.NEXT_PUBLIC_API_42;
+    console.log(redirectUrl);
+    console.log(`${process.env.NEXT_PUBLIC_API_URL}`);
+    if (!redirectUrl) {
+      console.error("NEXT_PUBLIC_API_42 is not defined in .env");
+      return;
+    }
+    window.location.href = redirectUrl;
   };
 
   return (
@@ -141,6 +160,14 @@ export default function LoginForm() {
         }`}
       >
         {loading ? t.loading : t.loginBtn}
+      </button>
+
+      <button
+        type="button"
+        onClick={handle42Connect}
+        className="w-full mt-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-500 transition"
+      >
+        42 Connect
       </button>
 
       {/* Messages */}
