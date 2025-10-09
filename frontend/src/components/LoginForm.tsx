@@ -116,6 +116,18 @@ export default function LoginForm() {
     window.location.href = redirectUrl;
   };
 
+  const handleGithubConnect = () => {
+    const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
+    const redirectUri = process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI;
+    if (!clientId || !redirectUri) {
+      console.error("Variables NEXT_PUBLIC_GITHUB_CLIENT_ID ou REDIRECT_URI non définies");
+      return;
+    }
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user`;
+    window.location.href = githubAuthUrl;
+  };
+
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -168,6 +180,14 @@ export default function LoginForm() {
         className="w-full mt-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-500 transition"
       >
         42 Connect
+      </button>
+
+      <button
+        type="button"
+        onClick={handleGithubConnect}
+        className="w-full mt-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-700 transition"
+      >
+        GitHub Connect
       </button>
 
       {/* Messages */}

@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-export default async function callback(fastify, opts) {
+export default async function callback_42(fastify, opts) {
   const pool = opts.pool;
 
   fastify.get("/callback", async (request, reply) => {
@@ -20,11 +20,11 @@ export default async function callback(fastify, opts) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           grant_type: "authorization_code",
-          client_id: process.env.CLIENT_ID,
-          client_secret: process.env.CLIENT_SECRET,
+          client_id: process.env.CLIENT_ID_42,
+          client_secret: process.env.CLIENT_SECRET_42,
           code,
-          redirect_uri: process.env.REDIRECT_URI,
-          state: process.env.NEXT_PUBLIC_STATE_,
+          redirect_uri: process.env.REDIRECT_URI_42,
+          state: process.env.NEXT_PUBLIC_STATE,
         }),
       });
 
@@ -58,6 +58,8 @@ export default async function callback(fastify, opts) {
         [response.email]
       );
 
+      let userId;
+
       if (existing.rows.length > 0) {
         const user = existing.rows[0];
         if (!user.oauth_provider) {
@@ -65,6 +67,7 @@ export default async function callback(fastify, opts) {
                 `UPDATE users SET oauth_provider = $1, oauth_id = $2 WHERE id = $3`,
                 ['42', response.id, user.id],
             );
+            userId = response.id
         }
         console.log("User already exists:", response.id);
       } else {
@@ -80,7 +83,7 @@ export default async function callback(fastify, opts) {
           [response.login, response.first_name, response.last_name, response.email, hashedPassword, "42"]
         );
 
-        let userId = result.rows[0].id;
+        userId = result.rows[0].id;
         console.log("User created via 42 Connect:", userId);
       }
 
