@@ -9,18 +9,10 @@ export default async function signupRoutes(fastify, opts) {
             if (!username || !firstName || !lastName || !email || !password) {
                 return reply.code(400).send({error : "MISSING_FIELDS"});
             }
-
-            const existingUsername = await pool.query(
-                `SELECT id FROM users WHERE username = $1`,
-                [username]
-            );
             const existingEmail = await pool.query(
                 `SELECT id FROM users WHERE email = $1`,
                 [email]
             );
-            if (existingUsername.rows.length > 0) {
-                return reply.code(409).send({error: "USER_EXISTS"});
-            }
             if (existingEmail.rows.length > 0) {
                 return reply.code(409).send({error: "EMAIL_EXISTS"});
             }

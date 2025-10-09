@@ -3,6 +3,7 @@ import cors from "@fastify/cors"
 import SignupRoute from './routes/signup.js';
 import LoginRoute from './routes/login.js';
 import VerifyRoute from './routes/verify-token.js';
+import Callback from './routes/callback.js';
 import Ping from './routes/ping.js'
 import pkg from "pg";
 const { Pool } = pkg;
@@ -18,9 +19,10 @@ const pool = new Pool({
 });
 
 await fastify.register(Ping);
-await fastify.register(VerifyRoute, {prefix : "/api"})
+await fastify.register(VerifyRoute, {prefix : "/api", pool})
 await fastify.register(SignupRoute, {prefix: "/api", pool});
 await fastify.register(LoginRoute, {prefix: "/api", pool});
+await fastify.register(Callback, {prefix: "/auth", pool});
 
 const start = async () => {
   try {
