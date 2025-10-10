@@ -1,4 +1,4 @@
-CREATE TYPE oauth_provider_enum AS ENUM ('42', 'google', 'github');
+CREATE TYPE oauth_provider_enum AS ENUM ('42', 'github', 'multiple');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,

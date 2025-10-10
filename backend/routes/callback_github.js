@@ -1,7 +1,40 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-export default async function callback_42(fastify, opts) {
+async function UserVerification(response, pool) {
+    const existing = await pool.query(
+    `SELECT id, email, oauth_provider FROM users WHERE email = $1`,
+    [response.email]
+  );
+  // User exists
+  if (existing.rows.length > 0) {
+    const user = existing.rows[0];
+    // User is already in github or mutiple and trying to just connect
+    if (user.oauth_provider === 'github') {
+      console.log("GITHUB USER TRYING TO CONNECT");
+      return user.id;
+    }
+    // User is not in github and emails are same // NEED TO LINK THE ACCOUNT
+    if (user.email == response.email) {
+      throw {type: "LINK_ACCOUNT", email: user.email, provider: 'github', id: response.id};
+    }
+    // User is not in github and emails are different
+    throw new Error("EMAIL_DIFFERENT");
+  }
+  else {  // User does not exists and need to be created
+    const randomPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    const result = await pool.query(
+        `INSERT INTO users (username, first_name, last_name, email, password, oauth_provider, oauth_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+        [response.login, response.login, response.login, response.email, hashedPassword, 'github', response.id]
+    );
+    console.log("CREATED NEW USER THROUGH GITHUB");
+    return result.rows[0].id;
+  }
+}
+
+export default async function callback_github(fastify, opts) {
   const pool = opts.pool;
 
   fastify.get("/callback", async (request, reply) => {
@@ -17,12 +50,14 @@ export default async function callback_42(fastify, opts) {
       //  Récupération du token github
       const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+                  "Accept": "application/json",
+        },
         body: JSON.stringify({
-          client_id: process.env.GITHUB_CLIENT_ID,
+          client_id: process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID,
           client_secret: process.env.GITHUB_CLIENT_SECRET,
           code,
-          redirect_uri: process.env.GITHUB_REDIRECT_URI,
+          redirect_uri: process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI,
         }),
       });
 
@@ -34,58 +69,30 @@ export default async function callback_42(fastify, opts) {
 
       const accessToken = tokenData.access_token;
 
-      //  Appel à l'API 42 pour obtenir les infos utilisateur
-      const aboutMe = await fetch("https://api.intra.42.fr/v2/me", {
+      //  Appel à l'API github pour obtenir les infos utilisateur
+      const aboutMe = await fetch("https://api.github.com/user", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
       const response = await aboutMe.json();
 
-      // console.log(
-      //   "About me:",
-      //   response.login,
-      //   response.first_name,
-      //   response.last_name,
-      //   response.email,
-      //   response.id,
-      // );
+      const aboutEmail = await fetch("https://api.github.com/user/emails", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
 
-      //  Vérifier si l'utilisateur existe déjà
-      const existing = await pool.query(
-        `SELECT id FROM users WHERE email = $1`,
-        [response.email]
-      );
+      const emails = await aboutEmail.json();
 
-      let userId;
+      const primaryEmailObj = emails.find((e) => e.primary === true);
+      const primaryEmail = primaryEmailObj?.email;
 
-      if (existing.rows.length > 0) {
-        const user = existing.rows[0];
-        if (!user.oauth_provider) {
-            await pool.query(
-                `UPDATE users SET oauth_provider = $1, oauth_id = $2 WHERE id = $3`,
-                ['42', response.id, user.id],
-            );
-            userId = response.id
-        }
-        console.log("User already exists:", response.id);
-      } else {
-        //  Créer un mot de passe aléatoire
-        const randomPassword = Math.random().toString(36).slice(-8);
-        const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
-        //  Insérer le nouvel utilisateur
-        const result = await pool.query(
-          `INSERT INTO users (username, first_name, last_name, email, password, oauth_provider)
-           VALUES ($1,$2,$3,$4,$5,$6)
-           RETURNING id`,
-          [response.login, response.first_name, response.last_name, response.email, hashedPassword, "42"]
-        );
-
-        userId = result.rows[0].id;
-        console.log("User created via 42 Connect:", userId);
+      if (!primaryEmail) {
+        throw new Error("EMAIL_PRIMARY");
       }
+      response.email = primaryEmail;
 
-      // générer un JWT ici et le renvoyer dans l’URL
+      const userId = await UserVerification(response, pool);
+
+        // générer un JWT ici et le renvoyer dans l’URL
       const token = jwt.sign(
             {
                 id: userId,
@@ -98,8 +105,16 @@ export default async function callback_42(fastify, opts) {
       return reply.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
 
     } catch (err) {
-      console.error("Error in 42 callback:", err);
-      return reply.code(500).send({ error: "INTERNAL_ERROR" });
+      console.error("Error in github callback:", err);
+      if (err.message == "EMAIL_DIFFERENT" || err.message === "EMAIL_PRIMARY") {
+        return reply.redirect(`${process.env.FRONTEND_URL}/auth/error`);
+      }
+      else if (err.type === "LINK_ACCOUNT") {
+        return reply.redirect(`${process.env.FRONTEND_URL}/auth/linking?email=${err.email}&provider=${err.provider}&id=${err.id}`);
+      }
+      else {
+        return reply.code(500).send({ error: "INTERNAL_ERROR" });
+      }
     }
   });
 }

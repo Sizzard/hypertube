@@ -1,6 +1,41 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+
+async function UserVerification(response, pool) {
+    const existing = await pool.query(
+    `SELECT id, email, oauth_provider FROM users WHERE email = $1`,
+    [response.email]
+  );
+
+  // User exists
+  if (existing.rows.length > 0) {
+    const user = existing.rows[0];
+    // User is already in 42 or mutiple and trying to just connect
+    if (user.oauth_provider === '42') {
+      console.log("42 USER TRYING TO CONNECT");
+      return user.id;
+    }
+    // User is not in 42 and emails are same // NEED TO LINK THE ACCOUNT
+    if (user.email == response.email) {
+      throw {type: "LINK_ACCOUNT", email: user.email, provider: '42', id: response.id};
+    }
+    // User is not in 42 and emails are different
+    throw new Error("EMAIL_DIFFERENT");
+  }
+  else {  // User does not exists and need to be created
+    const randomPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    const result = await pool.query(
+        `INSERT INTO users (username, first_name, last_name, email, password, oauth_provider, oauth_id) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+        [response.login, response.first_name, response.last_name, response.email, hashedPassword, '42', response.id]
+    );
+    console.log("CREATED NEW USER THROUGH 42");
+    return result.rows[0].id;
+  }
+}
+
 export default async function callback_42(fastify, opts) {
   const pool = opts.pool;
 
@@ -43,51 +78,9 @@ export default async function callback_42(fastify, opts) {
 
       const response = await aboutMe.json();
 
-      // console.log(
-      //   "About me:",
-      //   response.login,
-      //   response.first_name,
-      //   response.last_name,
-      //   response.email,
-      //   response.id,
-      // );
+      const userId = await UserVerification(response, pool);
 
-      //  Vérifier si l'utilisateur existe déjà
-      const existing = await pool.query(
-        `SELECT id FROM users WHERE email = $1`,
-        [response.email]
-      );
-
-      let userId;
-
-      if (existing.rows.length > 0) {
-        const user = existing.rows[0];
-        if (!user.oauth_provider) {
-            await pool.query(
-                `UPDATE users SET oauth_provider = $1, oauth_id = $2 WHERE id = $3`,
-                ['42', response.id, user.id],
-            );
-            userId = response.id
-        }
-        console.log("User already exists:", response.id);
-      } else {
-        //  Créer un mot de passe aléatoire
-        const randomPassword = Math.random().toString(36).slice(-8);
-        const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
-        //  Insérer le nouvel utilisateur
-        const result = await pool.query(
-          `INSERT INTO users (username, first_name, last_name, email, password, oauth_provider)
-           VALUES ($1,$2,$3,$4,$5,$6)
-           RETURNING id`,
-          [response.login, response.first_name, response.last_name, response.email, hashedPassword, "42"]
-        );
-
-        userId = result.rows[0].id;
-        console.log("User created via 42 Connect:", userId);
-      }
-
-      // générer un JWT ici et le renvoyer dans l’URL
+        // générer un JWT ici et le renvoyer dans l’URL
       const token = jwt.sign(
             {
                 id: userId,
@@ -101,7 +94,15 @@ export default async function callback_42(fastify, opts) {
 
     } catch (err) {
       console.error("Error in 42 callback:", err);
-      return reply.code(500).send({ error: "INTERNAL_ERROR" });
+      if (err.message == "EMAIL_DIFFERENT") {
+        return reply.redirect(`${process.env.FRONTEND_URL}/auth/error`);
+      }
+      else if (err.type === "LINK_ACCOUNT") {
+        return reply.redirect(`${process.env.FRONTEND_URL}/auth/linking?email=${err.email}&provider=${err.provider}&id=${err.id}`);
+      }
+      else {
+        return reply.code(500).send({ error: "INTERNAL_ERROR" });
+      }
     }
   });
 }

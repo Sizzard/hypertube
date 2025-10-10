@@ -108,7 +108,6 @@ export default function LoginForm() {
   const handle42Connect = () => {
     const redirectUrl = process.env.NEXT_PUBLIC_API_42;
     console.log(redirectUrl);
-    console.log(`${process.env.NEXT_PUBLIC_API_URL}`);
     if (!redirectUrl) {
       console.error("NEXT_PUBLIC_API_42 is not defined in .env");
       return;
@@ -123,7 +122,7 @@ export default function LoginForm() {
       console.error("Variables NEXT_PUBLIC_GITHUB_CLIENT_ID ou REDIRECT_URI non définies");
       return;
     }
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user`;
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user%20user:email`;
     window.location.href = githubAuthUrl;
   };
 
