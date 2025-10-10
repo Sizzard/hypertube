@@ -6,6 +6,8 @@ import VerifyRoute from './routes/verify-token.js';
 import Callback42 from './routes/callback_42.js';
 import CallbackGithub from './routes/callback_github.js';
 import LinkAccount from './routes/link-account.js';
+import forgotPassword from './routes/forgot-password.js';
+import resetPassword from './routes/reset-password.js';
 import Ping from './routes/ping.js'
 import pkg from "pg";
 const { Pool } = pkg;
@@ -21,6 +23,8 @@ const pool = new Pool({
 });
 
 await fastify.register(Ping);
+await fastify.register(forgotPassword, {prefix : "/api", pool})
+await fastify.register(resetPassword, {prefix : "/api", pool})
 await fastify.register(VerifyRoute, {prefix : "/api", pool})
 await fastify.register(SignupRoute, {prefix: "/api", pool});
 await fastify.register(LoginRoute, {prefix: "/api", pool});

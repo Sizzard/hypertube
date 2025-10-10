@@ -9,5 +9,7 @@ CREATE TABLE users (
     password VARCHAR(100) NOT NULL,
     oauth_provider oauth_provider_enum DEFAULT NULL,
     oauth_id VARCHAR(100),
+    reset_password_token VARCHAR(255),
+    reset_password_expires TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );

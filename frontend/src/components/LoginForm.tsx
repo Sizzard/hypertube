@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const pathname = usePathname();
+  const router = useRouter();
   const currentLocale = pathname?.startsWith("/en") ? "en" : "fr";
 
-  // Dictionnaires FR/EN
   const t = {
     fr: {
       title: "Connexion",
@@ -15,10 +15,11 @@ export default function LoginForm() {
       invalidEmail: "Email invalide.",
       requiredPassword: "Le mot de passe est requis.",
       loginBtn: "Se connecter",
+      forgotPassword: "Mot de passe oublié ?",
       loading: "Connexion...",
       success: "✅ Connexion réussie !",
       wrongCredentials: "❌ Email ou mot de passe incorrect.",
-      default: "❌ Une erreur est survenue, réessayez plus tard."
+      default: "❌ Une erreur est survenue, réessayez plus tard.",
     },
     en: {
       title: "Login",
@@ -27,14 +28,14 @@ export default function LoginForm() {
       invalidEmail: "Invalid email address.",
       requiredPassword: "Password is required.",
       loginBtn: "Login",
+      forgotPassword: "Forgot password?",
       loading: "Logging in...",
-      success: "✅ Login successful !",
+      success: "✅ Login successful!",
       wrongCredentials: "❌ Incorrect email or password.",
-      default: "❌ An error has occured, please try again later.",
+      default: "❌ An error has occurred, please try again later.",
     },
   }[currentLocale];
 
-  // États du formulaire
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [serverError, setServerError] = useState("");
@@ -61,7 +62,6 @@ export default function LoginForm() {
     setErrors(validationErrors);
     setSuccess(false);
 
-    // Si validation locale échoue → on ne tente pas le POST
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
@@ -72,42 +72,29 @@ export default function LoginForm() {
         },
         body: JSON.stringify(formData),
       });
+
       const data = await res.json();
 
       if (res.ok && data.token) {
         localStorage.setItem("token", data.token);
         console.log("User connected:", data);
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      }
-      // Si la réponse n’est pas OK → récupérer le message d’erreur
-      if (!res.ok) {
-        const message = t.wrongCredentials || t.default;
-        setServerError(message);
-        throw new Error(message);
+        setTimeout(() => window.location.reload(), 500);
+      } else {
+        setServerError(t.wrongCredentials);
       }
 
-      // Succès → on reset le formulaire
       setSuccess(true);
       setErrors({});
-      setFormData({
-        username: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
+      setFormData({ email: "", password: "" });
     } catch (err: any) {
-      // console.error("Signup error:", err);
       setErrors({ general: err.message || "Erreur serveur." });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handle42Connect = () => {
     const redirectUrl = process.env.NEXT_PUBLIC_API_42;
-    console.log(redirectUrl);
     if (!redirectUrl) {
       console.error("NEXT_PUBLIC_API_42 is not defined in .env");
       return;
@@ -125,7 +112,6 @@ export default function LoginForm() {
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user%20user:email`;
     window.location.href = githubAuthUrl;
   };
-
 
   return (
     <form
@@ -148,7 +134,7 @@ export default function LoginForm() {
       </div>
 
       {/* Mot de passe */}
-      <div className="mb-6">
+      <div className="mb-2">
         <label className="block text-sm font-medium mb-1">{t.password}</label>
         <input
           type="password"
@@ -160,7 +146,18 @@ export default function LoginForm() {
         {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
       </div>
 
-      {/* Bouton */}
+      {/* Forgot password */}
+      <div className="text-right mb-4">
+        <button
+          type="button"
+          onClick={() => router.push("/reset-password")}
+          className="text-sm text-yellow-400 hover:underline"
+        >
+          {t.forgotPassword}
+        </button>
+      </div>
+
+      {/* Bouton de connexion */}
       <button
         type="submit"
         disabled={loading}
@@ -173,6 +170,7 @@ export default function LoginForm() {
         {loading ? t.loading : t.loginBtn}
       </button>
 
+      {/* OAuth */}
       <button
         type="button"
         onClick={handle42Connect}

@@ -7,4 +7,4 @@ stop:
 down:
 	docker compose down
 
-re: stop up
+re: stop down up

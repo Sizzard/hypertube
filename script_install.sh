@@ -1,1 +1,1 @@
-cd backend && npm install fastify && npm install jsonwebtoken
+cd backend && npm install fastify && npm install jsonwebtoken && npm install nodemailer

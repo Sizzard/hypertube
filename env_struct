@@ -9,3 +9,7 @@ GITHUB_CLIENT_SECRET=
 JWT_SECRET="LAWaaFKN6581JNu+ag1jjlVOfqPORkKrTJ/If2nZTfM9OnbmuasZi+MkRv7isl4DSnpoWxFzih/pVFjS4RFwfA=="
 NEXT_PUBLIC_STATE="eq0RJn0XncKAN38t/PAxgKu+gzDRW+nfuwPTvXxylLUywm7cW79E3624mkXRNpAovsqkcAIAubNLKScVBq52nA=="
 FRONTEND_URL="http://localhost:3000"
+SMTP_HOST="smtp.office365.com"
+SMTP_PORT="587"
+SMPT_USER="hypertube2025@outlook.com"
+SMPT_PASS=
