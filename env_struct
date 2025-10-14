@@ -3,13 +3,13 @@ CLIENT_ID_42=
 CLIENT_SECRET_42=
 REDIRECT_URI_42="http://localhost:3030/auth/42/callback"
 NEXT_PUBLIC_API_42=
-GITHUB_CLIENT_ID=
-GITHUB_REDIRECT_URI="http://localhost:3030/auth/github/callback"
+NEXT_PUBLIC_GITHUB_CLIENT_ID=
+NEXT_PUBLIC_GITHUB_REDIRECT_URI="http://localhost:3030/auth/github/callback"
 GITHUB_CLIENT_SECRET=
 JWT_SECRET="LAWaaFKN6581JNu+ag1jjlVOfqPORkKrTJ/If2nZTfM9OnbmuasZi+MkRv7isl4DSnpoWxFzih/pVFjS4RFwfA=="
 NEXT_PUBLIC_STATE="eq0RJn0XncKAN38t/PAxgKu+gzDRW+nfuwPTvXxylLUywm7cW79E3624mkXRNpAovsqkcAIAubNLKScVBq52nA=="
 FRONTEND_URL="http://localhost:3000"
 SMTP_HOST="smtp.office365.com"
 SMTP_PORT="587"
-SMPT_USER="hypertube2025@outlook.com"
-SMPT_PASS=
+SMTP_USER="hypertube2025@outlook.com"
+SMTP_PASS=""

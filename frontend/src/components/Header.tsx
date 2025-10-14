@@ -14,6 +14,7 @@ const translations = {
     signup: "Inscription",
     logout: "Déconnexion",
     home: "Accueil",
+    profile: "Profil",
     lang: "EN",
   },
   en: {
@@ -23,6 +24,7 @@ const translations = {
     signup: "Sign Up",
     logout: "Logout",
     home: "Home",
+    profile: "Profile",
     lang: "FR",
   },
 };
@@ -54,7 +56,11 @@ export default function Header() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
-    router.push(`/${currentLocale}`); // redirige vers l’accueil
+    router.push(`/${currentLocale}`);
+  };
+
+  const handleProfile = () => {
+    router.push("/profile");
   };
 
   const toggleLocale =
@@ -101,12 +107,21 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400 transition"
-            >
-              {t.logout}
-            </button>
+            <>
+              <button
+                onClick={handleProfile}
+                className="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600 transition"
+              >
+                {t.profile}
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-400 transition"
+              >
+                {t.logout}
+              </button>
+            </>
           )}
 
           {/* Switcher de langue */}

@@ -21,10 +21,10 @@ export default async function forgotPassword(fastify, opts) {
                 [token, expires, email]
             );
             console.log(
-                process.env.SMTP_HOST,
-                process.env.SMTP_PORT,
-                process.env.SMTP_USER,
-                process.env.SMTP_PASS
+                "\nSMTP_HOST:", process.env.SMTP_HOST,
+                "\nSMTP_PORT:", process.env.SMTP_PORT,
+                "\nSMTP_USER:", process.env.SMTP_USER,
+                "\nSMTP_PASS:", process.env.SMTP_PASS
             )
             const transporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,

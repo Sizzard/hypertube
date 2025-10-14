@@ -5,23 +5,23 @@ export default async function signupRoutes(fastify, opts) {
     const pool = opts.pool;
     fastify.post("/login", async (request, reply) => {
         try {
-            const { email, password } = request.body;
+            const { username, password } = request.body;
 
-            if (!email || !password) {
+            if (!username || !password) {
                 return reply.code(400).send({error : "MISSING_FIELDS"});
             }
 
-            const existingEmail = await pool.query(
-                `SELECT id FROM users WHERE email = $1`,
-                [email]
+            const existingUsername = await pool.query(
+                `SELECT id FROM users WHERE username = $1`,
+                [username]
             );
 
-            if (existingEmail.rows.length === 0) {
+            if (existingUsername.rows.length === 0) {
                 return reply.code(401).send({error: "WRONG_CREDS"});
             }
             const user = await pool.query(
-                `SELECT * FROM users WHERE email = $1`,
-                [email]
+                `SELECT * FROM users WHERE username = $1`,
+                [username]
             );
             const storedHash = user.rows[0].password;
             const match = await bcrypt.compare(password, storedHash);
@@ -32,7 +32,7 @@ export default async function signupRoutes(fastify, opts) {
             const token = jwt.sign(
                 {
                     id: user.rows[0].id,
-                    email: user.rows[0].email,
+                    username: user.rows[0].username,
                     username: user.rows[0].username,
                 },
                 process.env.JWT_SECRET,

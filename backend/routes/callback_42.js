@@ -3,25 +3,26 @@ import jwt from "jsonwebtoken";
 
 
 async function UserVerification(response, pool) {
-    const existing = await pool.query(
+  const existingAccount = await pool.query(
+    "SELECT id, email FROM users WHERE oauth_id = $1",
+    [response.id],
+  );
+  if (existingAccount.rows.length > 0) {
+    console.log("42 CONNECT, USER ALREADY EXISTS, CONNECTING ...");
+    return existingAccount.rows[0].id;
+  }
+
+  const existingUsername = await pool.query(
+    `SELECT id, email, oauth_provider FROM users WHERE username = $1`,
+    [response.login]
+  );
+  const existingMail = await pool.query(
     `SELECT id, email, oauth_provider FROM users WHERE email = $1`,
     [response.email]
   );
 
-  // User exists
-  if (existing.rows.length > 0) {
-    const user = existing.rows[0];
-    // User is already in 42 or mutiple and trying to just connect
-    if (user.oauth_provider === '42') {
-      console.log("42 USER TRYING TO CONNECT");
-      return user.id;
-    }
-    // User is not in 42 and emails are same // NEED TO LINK THE ACCOUNT
-    if (user.email == response.email) {
-      throw {type: "LINK_ACCOUNT", email: user.email, provider: '42', id: response.id};
-    }
-    // User is not in 42 and emails are different
-    throw new Error("EMAIL_DIFFERENT");
+  if (existingUsername.rows.length > 0 || existingMail.rows.length > 0) {
+    throw new Error("OAUTH_CONFLICT");
   }
   else {  // User does not exists and need to be created
     const randomPassword = Math.random().toString(36).slice(-8);
@@ -94,11 +95,8 @@ export default async function callback_42(fastify, opts) {
 
     } catch (err) {
       console.error("Error in 42 callback:", err);
-      if (err.message == "EMAIL_DIFFERENT") {
+      if (err.message == "OAUTH_CONFLICT") {
         return reply.redirect(`${process.env.FRONTEND_URL}/auth/error`);
-      }
-      else if (err.type === "LINK_ACCOUNT") {
-        return reply.redirect(`${process.env.FRONTEND_URL}/auth/linking?email=${err.email}&provider=${err.provider}&id=${err.id}`);
       }
       else {
         return reply.code(500).send({ error: "INTERNAL_ERROR" });

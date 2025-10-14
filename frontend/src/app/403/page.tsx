@@ -7,7 +7,7 @@ export default function ForbiddenPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white text-center px-6">
       <h1 className="text-6xl font-bold text-yellow-400 mb-6">403</h1>
       <p className="text-gray-300 text-xl mb-8">
-        There is nothing to see here, but maybe if you give a valid password ...
+        There is nothing to see here, but maybe if you login ...
       </p>
 
       <Link

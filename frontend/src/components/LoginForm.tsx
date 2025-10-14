@@ -10,34 +10,34 @@ export default function LoginForm() {
   const t = {
     fr: {
       title: "Connexion",
-      email: "Email",
+      username: "Nom d'utilisateur",
       password: "Mot de passe",
-      invalidEmail: "Email invalide.",
+      requiredUsername: "Le nom d'utilisateur est requis.",
       requiredPassword: "Le mot de passe est requis.",
       loginBtn: "Se connecter",
       forgotPassword: "Mot de passe oublié ?",
       loading: "Connexion...",
       success: "✅ Connexion réussie !",
-      wrongCredentials: "❌ Email ou mot de passe incorrect.",
+      wrongCredentials: "❌ Nom d'utilisateur ou mot de passe incorrect.",
       default: "❌ Une erreur est survenue, réessayez plus tard.",
     },
     en: {
       title: "Login",
-      email: "Email",
+      username: "Username",
       password: "Password",
-      invalidEmail: "Invalid email address.",
+      requiredUsername: "Username is required.",
       requiredPassword: "Password is required.",
       loginBtn: "Login",
       forgotPassword: "Forgot password?",
       loading: "Logging in...",
       success: "✅ Login successful!",
-      wrongCredentials: "❌ Incorrect email or password.",
+      wrongCredentials: "❌ Incorrect username or password.",
       default: "❌ An error has occurred, please try again later.",
     },
   }[currentLocale];
 
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
   const [serverError, setServerError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,28 +48,29 @@ export default function LoginForm() {
   };
 
   const validate = () => {
-    const newErrors: { email?: string; password?: string } = {};
-    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
-      newErrors.email = t.invalidEmail;
+    const newErrors: { username?: string; password?: string } = {};
+    if (!formData.username.trim()) newErrors.username = t.requiredUsername;
     if (!formData.password.trim()) newErrors.password = t.requiredPassword;
     return newErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     const validationErrors = validate();
     setErrors(validationErrors);
     setSuccess(false);
 
-    if (Object.keys(validationErrors).length > 0) return;
+    if (Object.keys(validationErrors).length > 0) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("http://localhost:3030/api/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -78,16 +79,13 @@ export default function LoginForm() {
       if (res.ok && data.token) {
         localStorage.setItem("token", data.token);
         console.log("User connected:", data);
+        setSuccess(true);
         setTimeout(() => window.location.reload(), 500);
       } else {
         setServerError(t.wrongCredentials);
       }
-
-      setSuccess(true);
-      setErrors({});
-      setFormData({ email: "", password: "" });
     } catch (err: any) {
-      setErrors({ general: err.message || "Erreur serveur." });
+      setServerError(err.message || t.default);
     } finally {
       setLoading(false);
     }
@@ -109,7 +107,7 @@ export default function LoginForm() {
       console.error("Variables NEXT_PUBLIC_GITHUB_CLIENT_ID ou REDIRECT_URI non définies");
       return;
     }
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user%20user:email`;
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user`;
     window.location.href = githubAuthUrl;
   };
 
@@ -120,20 +118,20 @@ export default function LoginForm() {
     >
       <h2 className="text-2xl font-bold text-yellow-400 mb-4">{t.title}</h2>
 
-      {/* Email */}
+      {/* Username */}
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">{t.email}</label>
+        <label className="block text-sm font-medium mb-1">{t.username}</label>
         <input
-          type="email"
-          name="email"
-          value={formData.email}
+          type="text"
+          name="username"
+          value={formData.username}
           onChange={handleChange}
           className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 focus:outline-none focus:border-yellow-400"
         />
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+        {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
       </div>
 
-      {/* Mot de passe */}
+      {/* Password */}
       <div className="mb-2">
         <label className="block text-sm font-medium mb-1">{t.password}</label>
         <input
@@ -150,14 +148,14 @@ export default function LoginForm() {
       <div className="text-right mb-4">
         <button
           type="button"
-          onClick={() => router.push("/reset-password")}
+          onClick={() => router.push("/forgot-password")}
           className="text-sm text-yellow-400 hover:underline"
         >
           {t.forgotPassword}
         </button>
       </div>
 
-      {/* Bouton de connexion */}
+      {/* Login button */}
       <button
         type="submit"
         disabled={loading}
