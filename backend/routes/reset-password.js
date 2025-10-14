@@ -25,7 +25,7 @@ export default async function resetPassword(fastify, opts) {
             return reply.send({message: "SUCCESS"});
         } catch(err) {
             console.log("ERROR RESET PASSWORD:", err);
-            return reply.code(500).send({error: "INTERNAL_SERVER_ERROR"});
+            return reply.code(400).send({ error: "BAD_REQUEST" });
         }
     });
 }

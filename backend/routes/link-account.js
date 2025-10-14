@@ -14,7 +14,7 @@ export default async function linkAccount(fastify, opts) {
         }
         catch(err) {
             console.log("ERROR in LINK ACCOUNT:", err);
-            return reply.code(500).send({error: "SERVER_ERROR"});
+            return reply.code(400).send({ error: "BAD_REQUEST" });
         }
     });
 }

@@ -7,7 +7,7 @@ async function UserVerification(response, pool) {
     [response.id],
   );
   if (existingAccount.rows.length > 0) {
-    console.log("42 CONNECT, USER ALREADY EXISTS, CONNECTING ...");
+    console.log("GITHUB CONNECT, USER ALREADY EXISTS, CONNECTING ...");
     return existingAccount.rows[0].id;
   }
 
@@ -84,6 +84,11 @@ export default async function callback_github(fastify, opts) {
 
       const emails = await aboutEmail.json();
 
+      if (!aboutEmail.ok) {
+        console.error("Can't read Github emails:", emails);
+        throw new Error("EMAIL_FETCH_FAILED");
+      }
+
       const primaryEmailObj = emails.find((e) => e.primary === true);
       const primaryEmail = primaryEmailObj?.email;
 
@@ -108,14 +113,14 @@ export default async function callback_github(fastify, opts) {
 
     } catch (err) {
       console.error("Error in github callback:", err);
-      if (err.message == "OAUTH_CONFLICT" || err.message === "EMAIL_PRIMARY") {
+      if (err.message == "OAUTH_CONFLICT" || err.message === "EMAIL_PRIMARY" || err.message === "EMAIL_FETCH_FAILED") {
         return reply.redirect(`${process.env.FRONTEND_URL}/auth/error`);
       }
       else if (err.type === "LINK_ACCOUNT") {
         return reply.redirect(`${process.env.FRONTEND_URL}/auth/linking?email=${err.email}&provider=${err.provider}&id=${err.id}`);
       }
       else {
-        return reply.code(500).send({ error: "INTERNAL_ERROR" });
+        return reply.code(400).send({ error: "BAD_REQUEST" });
       }
     }
   });

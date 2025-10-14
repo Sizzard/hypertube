@@ -13,6 +13,7 @@ export default function AuthErrorPage() {
         <p className="text-gray-300 mb-6">
           Nous n'avons pas pu lier votre compte externe (GitHub, 42, etc.).
           Cela se produit généralement lorsque l'adresse e-mail ou le username existe déjà.
+          Cela peut également être une erreur de l'API Github ou 42.
         </p>
 
         <p className="text-gray-400 mb-8 text-sm">

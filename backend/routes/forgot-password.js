@@ -42,7 +42,7 @@ export default async function forgotPassword(fastify, opts) {
             return reply.send({ message: "If that email exists, a reset link has been sent." });
         } catch(err) {
             console.log("ERROR FORGOT PASSWORD:", err);
-            return reply.code(500).send({error: "INTERNAL_SERVER_ERROR"});
+            return reply.code(400).send({ error: "BAD_REQUEST" });
         }
     });
 }

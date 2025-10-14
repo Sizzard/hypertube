@@ -107,7 +107,7 @@ export default function LoginForm() {
       console.error("Variables NEXT_PUBLIC_GITHUB_CLIENT_ID ou REDIRECT_URI non définies");
       return;
     }
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user`;
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user%20user:email`;
     window.location.href = githubAuthUrl;
   };
 

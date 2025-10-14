@@ -99,7 +99,7 @@ export default async function callback_42(fastify, opts) {
         return reply.redirect(`${process.env.FRONTEND_URL}/auth/error`);
       }
       else {
-        return reply.code(500).send({ error: "INTERNAL_ERROR" });
+        return reply.code(400).send({ error: "BAD_REQUEST" });
       }
     }
   });
