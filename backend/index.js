@@ -1,14 +1,16 @@
 import Fastify from 'fastify'
 import cors from "@fastify/cors"
+import fastifyStatic from "@fastify/static";
+import path from "path";
 import SignupRoute from './routes/signup.js';
 import LoginRoute from './routes/login.js';
 import VerifyRoute from './routes/verify-token.js';
 import Callback42 from './routes/callback_42.js';
 import CallbackGithub from './routes/callback_github.js';
-import LinkAccount from './routes/link-account.js';
 import forgotPassword from './routes/forgot-password.js';
 import resetPassword from './routes/reset-password.js';
 import Profile from './routes/profile.js';
+import Avatar from './routes/avatar.js';
 import Ping from './routes/ping.js'
 import pkg from "pg";
 const { Pool } = pkg;
@@ -22,6 +24,11 @@ await fastify.register(cors, {
   methods: ["GET", "POST", "PUT", "DELETE"],
 });
 
+fastify.register(fastifyStatic, {
+  root: path.join(process.cwd(), "uploads"),
+  prefix: "/uploads/",
+});
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
@@ -32,10 +39,10 @@ await fastify.register(resetPassword, {prefix : "/api", pool})
 await fastify.register(VerifyRoute, {prefix : "/api", pool})
 await fastify.register(SignupRoute, {prefix: "/api", pool});
 await fastify.register(LoginRoute, {prefix: "/api", pool});
-await fastify.register(LinkAccount, {prefix: "/auth/", pool});
 await fastify.register(Callback42, {prefix: "/auth/42", pool});
 await fastify.register(CallbackGithub, {prefix: "/auth/github", pool});
 await fastify.register(Profile, {prefix: "/api", pool});
+await fastify.register(Avatar, {prefix: "/api/avatar", pool});
 
 const start = async () => {
   try {

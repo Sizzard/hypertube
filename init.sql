@@ -11,5 +11,6 @@ CREATE TABLE users (
     oauth_id VARCHAR(100),
     reset_password_token VARCHAR(255),
     reset_password_expires TIMESTAMP,
+    avatar_filename VARCHAR(50) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );

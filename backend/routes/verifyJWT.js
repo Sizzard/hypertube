@@ -4,6 +4,7 @@ export default async function verifyJWT(request, reply) {
     try {
         const authHeader = request.headers.authorization;
         if (!authHeader) {
+            console.log("COULD NOT VERIFY JWT");
             return reply.code(401).send({error: "unauthorized"});
         }
         const token = authHeader.split(" ")[1];
@@ -12,6 +13,7 @@ export default async function verifyJWT(request, reply) {
         request.user = decoded;
     }
     catch(err) {
-        return reply.code(401).send({error: "Forbidden"});
+        console.log("COULD NOT VERIFY JWT");
+        return reply.code(401).send({error: "unauthorized"});
     }
 }
