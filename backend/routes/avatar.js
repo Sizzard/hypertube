@@ -28,8 +28,18 @@ export default async function avatarUpload(fastify, opts) {
         },
     });
 
+    const fileFilter = (request, file , cb) => {
+        if (["image/jpeg", "image/jpg", "image/png"].includes(file.mimetype)) {
+            cb(null, true);
+        }
+        else {
+            cb(new Error("INVALID_FILE_TYPE"), false);
+        }
+    };
+
     const upload = multer({
         storage,
+        fileFilter,
         limits: {fileSize: 2 * 1024 * 1024},
     });
 
