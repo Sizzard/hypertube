@@ -15,6 +15,42 @@ export default async function profile(fastify, opts) {
             return reply.code(400).send({ error: "BAD_REQUEST" });
         }
     });
+    fastify.get("/public-profile/:username", {preHandler: [verifyJWT]}, async (request, reply) => {
+        try {
+            const { username } = request.params;
+            if (!username) {
+                return reply.code(400).send({error: "BAD_REQUEST"});
+            }
+            const result = await pool.query(
+                "SELECT username, first_name, last_name, avatar_filename FROM users WHERE username=$1",
+                [username],
+            );
+            console.log("USERNAME:", username);
+            console.log("RESULT:", result);
+            console.log("RESULT LEN :", result.rows.length);
+
+            if (result.rows.length === 0) {
+                throw new Error("USER_DOES_NOT_EXIST");
+            }
+            const user = result.rows[0];
+            const avatarUrl = user.avatar_filename
+                ? `http://localhost:3030/uploads/${user.avatar_filename}`
+                : "/default.jpg";
+
+            return reply.send({
+                username: user.username,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                avatar_url: avatarUrl,
+            });
+        } catch(err) {
+            console.log("ERROR GET PULBIC PROFILE:", err);
+            if (err.message === "USER_DOES_NOT_EXIST") {
+            return reply.code(400).send({error: "USER_DOES_NOT_EXIST"});
+            }
+            return reply.code(400).send({error: "BAD_REQUEST"});
+        }
+    });
     fastify.put('/private-profile', {preHandler: [verifyJWT]}, async (request,reply) => {
         try {
             const { username, first_name, last_name, email } = request.body;
