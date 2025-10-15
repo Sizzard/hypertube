@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function ProfilePage() {
@@ -24,6 +25,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState("");
   const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
 
   useEffect(() => setIsClient(true), []);
 
@@ -48,7 +50,8 @@ export default function ProfilePage() {
           email: data.email,
         });
       } catch (err) {
-        console.error(err);
+        router.push("/");
+        // console.error(err);
         setMessage("❌ Impossible de récupérer vos informations.");
       }
     };

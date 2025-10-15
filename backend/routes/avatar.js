@@ -57,15 +57,22 @@ export default async function avatarUpload(fastify, opts) {
                 return reply.code(400).send({error: "NO_FILE"});
             }
 
-            const oldPath = await pool.query(
+            const dbAvatar = await pool.query(
                 "SELECT avatar_filename FROM users WHERE id=$1",
                 [request.user.id],
             );
-            if (oldPath.rows.length !== 0 && oldPath.rows[0].avatar_filename !== null &&  fs.existsSync(oldPath.rows[0].avatar_filename)){
-                console.log(oldPath.rows[0].avatar_filename);
-                fs.unlinkSync(oldPath.rows[0].avatar_filename);
+            if (dbAvatar.rows[0].avatar_filename != null) {
+                const oldFilename = dbAvatar.rows[0].avatar_filename;
+                const oldPath = path.join(uploadDir, oldFilename);
+                // console.log("LEN :", dbAvatar.rows.length);
+                // console.log("VALUE :", dbAvatar.rows[0].avatar_filename);
+                // console.log("EXISTS:", fs.existsSync(oldPath));
+                if (fs.existsSync(oldPath)){
+                    // console.log("Old image exists, deleting old one");
+                    fs.unlinkSync(oldPath);
+                }
             }
-            console.log("FILE RECEIVED:", request.file);
+            // console.log("FILE RECEIVED:", request.file);
             await pool.query(
                 "UPDATE users SET avatar_filename=$1 WHERE id=$2",
                 [request.file.filename, request.user.id],
@@ -87,11 +94,11 @@ export default async function avatarUpload(fastify, opts) {
                 [username]
             );
 
-            console.log("GET AVATAR, SENDING IMAGE OF : ", username);
+            // console.log("GET AVATAR, SENDING IMAGE OF : ", username);
 
             const avatarUrl = `http://localhost:3030/uploads/${user.rows[0].avatar_filename || "default.jpg"}`;
 
-            console.log("avatarUrl:", avatarUrl);
+            // console.log("avatarUrl:", avatarUrl);
             return reply.send({avatar_url: avatarUrl});
 
         } catch(err) {
