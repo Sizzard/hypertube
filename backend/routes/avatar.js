@@ -3,7 +3,6 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import verifyJWT from "./verifyJWT.js";
-import { request } from "http";
 
 const uploadDir = path.join(process.cwd(), "uploads");
 
@@ -57,6 +56,15 @@ export default async function avatarUpload(fastify, opts) {
             if (!request.file) {
                 return reply.code(400).send({error: "NO_FILE"});
             }
+
+            const oldPath = await pool.query(
+                "SELECT avatar_filename FROM users WHERE id=$1",
+                [request.user.id],
+            );
+            if (oldPath.rows.length !== 0 && oldPath.rows[0].avatar_filename !== null &&  fs.existsSync(oldPath.rows[0].avatar_filename)){
+                console.log(oldPath.rows[0].avatar_filename);
+                fs.unlinkSync(oldPath.rows[0].avatar_filename);
+            }
             console.log("FILE RECEIVED:", request.file);
             await pool.query(
                 "UPDATE users SET avatar_filename=$1 WHERE id=$2",
@@ -64,6 +72,7 @@ export default async function avatarUpload(fastify, opts) {
             );
             reply.send({ok: true});
         }catch(err) {
+            console.log("ERROR DURING FILE UPLOAD",err);
             return reply.code(400).send({error: err.code});
         }
     });
