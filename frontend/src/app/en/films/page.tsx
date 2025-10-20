@@ -1,25 +1,7 @@
 "use client";
 
-import ProtectedRoute from "@/components/ProtectedRoute";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import FilmsPage from "@/components/FilmPage";
 
-
-export default function FilmsPage() {
-  return (    <div className="min-h-screen flex flex-col bg-gray-900 text-white">
-        <Header />
-  
-        <main className="flex-1 p-6 max-w-4xl mx-auto">
-          <ProtectedRoute>
-            <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center">
-              <h1 className="text-4xl font-bold text-yellow-400 mb-4">Films</h1>
-              <p>Welcome to the section reserved to the connected users.</p>
-            </div>
-          </ProtectedRoute>
-        </main>
-  
-        <Footer />
-      </div>
-
-  );
+export default function Films() {
+  return <FilmsPage />;
 }

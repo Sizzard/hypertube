@@ -11,6 +11,8 @@ import forgotPassword from './routes/forgot-password.js';
 import resetPassword from './routes/reset-password.js';
 import Profile from './routes/profile.js';
 import Avatar from './routes/avatar.js';
+import SearchMovie from './routes/search-movie.js';
+import MovieDetails from './routes/movie-details.js';
 import Ping from './routes/ping.js'
 import pkg from "pg";
 const { Pool } = pkg;
@@ -43,6 +45,8 @@ await fastify.register(Callback42, {prefix: "/auth/42", pool});
 await fastify.register(CallbackGithub, {prefix: "/auth/github", pool});
 await fastify.register(Profile, {prefix: "/api", pool});
 await fastify.register(Avatar, {prefix: "/api/avatar", pool});
+await fastify.register(SearchMovie, {prefix: "/api"});
+await fastify.register(MovieDetails, {prefix: "/api"});
 
 const start = async () => {
   try {
