@@ -1,123 +1,5 @@
-// "use client";
-
-// import { useState } from "react";
-// import { useRouter } from "next/navigation";
-// import ProtectedRoute from "@/components/ProtectedRoute";
-// import Header from "@/components/Header";
-// import Footer from "@/components/Footer";
-
-// export default function FilmsPage() {
-//   const [query, setQuery] = useState("");
-//   const [results, setResults] = useState<any[]>([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
-//   const router = useRouter();
-
-//   const handleSearch = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     if (!query.trim()) return;
-
-//     const token = localStorage.getItem("token");
-//     if (!token) {
-//       setError("❌ Vous devez être connecté pour effectuer une recherche.");
-//       return;
-//     }
-
-//     setLoading(true);
-//     setError(null);
-
-//     try {
-//       const res = await fetch(`http://localhost:3030/api/search-movie?title=${encodeURIComponent(query)}`, {
-//         headers: { Authorization: `Bearer ${token}` },
-//       });
-
-//       const data = await res.json();
-//       if (!res.ok || !data.Search) throw new Error(data?.error || "Erreur lors de la recherche");
-
-//       setResults(data.Search);
-//     } catch (err) {
-//       console.error(err);
-//       setError("❌ Impossible de récupérer les résultats.");
-//       setResults([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleClick = (id: string) => {
-//     router.push(`films/${id}`);
-//   };
-
-//   return (
-//     <div className="min-h-screen flex flex-col bg-gray-900 text-white">
-//       <Header />
-
-//       <main className="flex-1 p-6 max-w-5xl mx-auto">
-//         <ProtectedRoute>
-//           <h1 className="text-4xl font-bold text-yellow-400 mb-8 text-center">
-//             Recherche de Films
-//           </h1>
-
-//           <form
-//             onSubmit={handleSearch}
-//             className="flex flex-col sm:flex-row justify-center gap-4 mb-10"
-//           >
-//             <input
-//               type="text"
-//               value={query}
-//               onChange={(e) => setQuery(e.target.value)}
-//               placeholder="Entrez le nom d’un film..."
-//               className="w-full sm:w-2/3 bg-gray-800 text-white border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-//             />
-//             <button
-//               type="submit"
-//               className="bg-yellow-400 text-gray-900 px-6 py-2 rounded-xl font-semibold hover:bg-yellow-300 transition"
-//             >
-//               Rechercher
-//             </button>
-//           </form>
-
-//           {error && <p className="text-center text-red-400 mb-6">{error}</p>}
-//           {loading && <p className="text-center text-gray-400">Chargement...</p>}
-
-//           {!loading && results.length > 0 && (
-//             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-//               {results.map((film) => (
-//                 <div
-//                   key={film.imdbID}
-//                   onClick={() => handleClick(film.imdbID)}
-//                   className="relative group cursor-pointer rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-105 transition-transform duration-300"
-//                 >
-//                   {film.Poster && film.Poster !== "N/A" ? (
-//                     <img
-//                       src={film.Poster}
-//                       alt={film.Title}
-//                       className="w-full h-72 object-cover"
-//                     />
-//                   ) : (
-//                     <div className="w-full h-72 bg-gray-700 flex items-center justify-center text-gray-500">
-//                       Pas d’image
-//                     </div>
-//                   )}
-
-//                   <div className="absolute inset-0 bg-black bg-opacity-70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-//                     <p className="text-yellow-400 font-semibold text-center px-2 text-lg">
-//                       {film.Title} ({film.Year})
-//                     </p>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           )}
-//         </ProtectedRoute>
-//       </main>
-
-//       <Footer />
-//     </div>
-//   );
-// }
-
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -125,6 +7,7 @@ export default function FilmsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [films, setFilms] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"name" | "genre" | "vote_average" | "release_date">("name");
   const router = useRouter();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -138,24 +21,42 @@ export default function FilmsPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3030/api/search-movie?title=${encodeURIComponent(searchTerm)}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `http://localhost:3030/api/search-movie?title=${encodeURIComponent(searchTerm)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur inconnue");
-      setFilms(data.results || []); // <= adapter à la nouvelle structure
-    } catch (err) {
-      console.error(err);
+
+      setFilms(data.results || []);
+    } catch {
       setError("❌ Erreur lors de la recherche.");
     }
   };
+
+  // Fonction pour trier le tableau selon le critère choisi
+  const sortedFilms = [...films].sort((a, b) => {
+    switch (sortBy) {
+      case "name":
+        return a.title.localeCompare(b.title);
+      case "genre":
+        return (a.genres?.[0] || "").localeCompare(b.genres?.[0] || "");
+      case "vote_average":
+        return (b.vote_average || 0) - (a.vote_average || 0); // desc
+      case "release_date":
+        return (b.release_date ? new Date(b.release_date).getTime() : 0) - (a.release_date ? new Date(a.release_date).getTime() : 0);
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-900 text-white items-center py-10">
       <h1 className="text-4xl font-bold text-yellow-400 mb-6">Recherche de Films</h1>
 
       {/* Barre de recherche */}
-      <form onSubmit={handleSearch} className="flex mb-8 w-full max-w-md">
+      <form onSubmit={handleSearch} className="flex mb-4 w-full max-w-md">
         <input
           type="text"
           placeholder="Rechercher un film..."
@@ -171,17 +72,35 @@ export default function FilmsPage() {
         </button>
       </form>
 
+      {/* Choix du tri */}
+      <div className="mb-6 flex space-x-4">
+        <label className="text-gray-300 flex items-center space-x-2">
+          <span>Tri par :</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="bg-gray-800 border border-yellow-400 px-2 py-1 rounded text-white focus:outline-none"
+          >
+            <option value="name">Nom</option>
+            <option value="genre">Genre</option>
+            <option value="vote_average">Note</option>
+            <option value="release_date">Année de production</option>
+          </select>
+        </label>
+      </div>
+
       {/* Gestion des erreurs */}
       {error && <p className="text-red-400 mb-4">{error}</p>}
 
       {/* Liste des résultats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-        {films.map((film) => (
+        {sortedFilms.map((film) => (
           <div
             key={film.id}
-            className="relative group cursor-pointer"
+            className="relative group cursor-pointer rounded-lg overflow-hidden"
             onClick={() => router.push(`films/${film.id}`)}
           >
+            {/* Poster */}
             <img
               src={
                 film.poster_path
@@ -189,10 +108,18 @@ export default function FilmsPage() {
                   : "/default-poster.jpg"
               }
               alt={film.title}
-              className="w-full rounded-lg shadow-lg border border-gray-700 transition-transform transform group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-300 transform group-hover:scale-105"
             />
-            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-yellow-400 text-center py-2 opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg">
-              {film.title}
+
+            {/* Overlay sombre */}
+            <div className="absolute inset-0 bg-black bg-opacity-70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center text-center px-2">
+              <h2 className="text-lg font-bold text-yellow-400 mb-2">{film.title}</h2>
+              <p className="text-sm text-gray-300">
+                📅 {film.release_date || "Date inconnue"}
+              </p>
+              <p className="text-sm text-gray-300">
+                ⭐ {film.vote_average?.toFixed(1) || "?"} / 10
+              </p>
             </div>
           </div>
         ))}

@@ -28,7 +28,7 @@ export default async function searchMovie(fastify, opts) {
                 vote_count: movie.vote_count,
             }));
 
-            filtered.sort((a, b) => b.vote_count - a.vote_count);
+            filtered.sort((a, b) => a.title.localeCompare(b.title));
 
             console.log("AFTER TRIM:", filtered);
             return reply.send({
@@ -37,7 +37,7 @@ export default async function searchMovie(fastify, opts) {
             });
         }
         catch (err) {
-            console.log("ERROR REQUEST TITLE:", err);
+            console.log("ERROR SEARCH-MOVIE:", err);
             return reply.code(400).send({error: "BAD_REQUEST"});
         }
     });
