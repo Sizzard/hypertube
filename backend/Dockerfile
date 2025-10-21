@@ -1,4 +1,4 @@
-FROM node:slim
+FROM node:20
 
 # Setting up the work directory
 WORKDIR /app

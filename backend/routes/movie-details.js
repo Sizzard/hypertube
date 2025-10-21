@@ -36,9 +36,10 @@ export default async function movieDetails(fastify, opts) {
             const producers = data.credits.crew
             ?.filter((person) => person.job == "Producer")
             .map((d) => d.name) || [];
-
+            console.log("BEFOR TRIM:",data);
             const movie = {
                 id: data.id,
+                imdb_id: data.imdb_id,
                 title: data.title,
                 release_date: data.release_date,
                 runtime: formatRuntime(data.runtime),

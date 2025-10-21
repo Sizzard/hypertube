@@ -41,8 +41,8 @@ await fastify.register(resetPassword, {prefix : "/api", pool})
 await fastify.register(VerifyRoute, {prefix : "/api", pool})
 await fastify.register(SignupRoute, {prefix: "/api", pool});
 await fastify.register(LoginRoute, {prefix: "/api", pool});
-await fastify.register(Callback42, {prefix: "/auth/42", pool});
-await fastify.register(CallbackGithub, {prefix: "/auth/github", pool});
+await fastify.register(Callback42, {prefix: "/api/auth/42", pool});
+await fastify.register(CallbackGithub, {prefix: "/api/auth/github", pool});
 await fastify.register(Profile, {prefix: "/api", pool});
 await fastify.register(Avatar, {prefix: "/api/avatar", pool});
 await fastify.register(SearchMovie, {prefix: "/api"});
