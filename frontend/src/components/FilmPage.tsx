@@ -63,7 +63,7 @@ export default function FilmsPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:3030/api/search-movie?title=${encodeURIComponent(searchTerm)}`,
+        `/api/search-movie?title=${encodeURIComponent(searchTerm)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

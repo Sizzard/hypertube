@@ -30,7 +30,7 @@ function UserSearchBar() {
         return;
       }
 
-      const res = await fetch(`http://localhost:3030/api/public-profile/${search}`, {
+      const res = await fetch(`/api/public-profile/${search}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -124,7 +124,7 @@ export default function ProfilePage() {
         const token = localStorage.getItem("token");
         if (!token) return;
 
-        const res = await fetch("http://localhost:3030/api/private-profile", {
+        const res = await fetch("/api/private-profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error("Erreur lors du chargement du profil");
@@ -147,7 +147,7 @@ export default function ProfilePage() {
     if (!user?.username) return;
     const fetchAvatar = async () => {
       try {
-        const res = await fetch(`http://localhost:3030/api/avatar/${user.username}`);
+        const res = await fetch(`/api/avatar/${user.username}`);
         const data = await res.json();
         setUserAvatar(data.avatar_url || "/default.jpg");
       } catch {
@@ -182,7 +182,7 @@ export default function ProfilePage() {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      const res = await fetch("http://localhost:3030/api/avatar/upload", {
+      const res = await fetch("/api/avatar/upload", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formDataUpload,
@@ -222,7 +222,7 @@ export default function ProfilePage() {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      const res = await fetch("http://localhost:3030/api/private-profile", {
+      const res = await fetch("/api/private-profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

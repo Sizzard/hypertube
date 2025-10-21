@@ -34,7 +34,7 @@ export default async function profile(fastify, opts) {
             }
             const user = result.rows[0];
             const avatarUrl = user.avatar_filename
-                ? `http://localhost:3030/uploads/${user.avatar_filename}`
+                ? `backend/uploads/${user.avatar_filename}`
                 : "/default.jpg";
 
             return reply.send({

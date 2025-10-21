@@ -28,7 +28,7 @@ export default function UserSearchBar() {
         return;
       }
 
-      const res = await fetch(`http://localhost:3030/api/public-profile/${search}`, {
+      const res = await fetch(`/api/public-profile/${search}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -73,7 +73,7 @@ export default function FilmDetailPage() {
     const fetchFilmDetails = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3030/api/movie-details?id=${imdbID}`,
+          `/api/movie-details?id=${imdbID}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 

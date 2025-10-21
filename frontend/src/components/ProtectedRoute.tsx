@@ -22,7 +22,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           return;
         }
 
-        const res = await fetch("http://localhost:3030/api/verify-token", {
+        const res = await fetch("/api/verify-token", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -109,15 +109,15 @@ export default async function callback_github(fastify, opts) {
             process.env.JWT_SECRET,
             {expiresIn: "2h"}
         );
-      return reply.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
+      return reply.redirect(`/auth/success?token=${token}`);
 
     } catch (err) {
       console.error("Error in github callback:", err);
       if (err.message == "OAUTH_CONFLICT" || err.message === "EMAIL_PRIMARY" || err.message === "EMAIL_FETCH_FAILED") {
-        return reply.redirect(`${process.env.FRONTEND_URL}/auth/error`);
+        return reply.redirect(`/auth/error`);
       }
       else if (err.type === "LINK_ACCOUNT") {
-        return reply.redirect(`${process.env.FRONTEND_URL}/auth/linking?email=${err.email}&provider=${err.provider}&id=${err.id}`);
+        return reply.redirect(`/auth/linking?email=${err.email}&provider=${err.provider}&id=${err.id}`);
       }
       else {
         return reply.code(400).send({ error: "BAD_REQUEST" });

@@ -96,7 +96,7 @@ export default async function avatarUpload(fastify, opts) {
 
             // console.log("GET AVATAR, SENDING IMAGE OF : ", username);
 
-            const avatarUrl = `http://localhost:3030/uploads/${user.rows[0].avatar_filename || "default.jpg"}`;
+            const avatarUrl = `backend/uploads/${user.rows[0].avatar_filename || "default.jpg"}`;
 
             // console.log("avatarUrl:", avatarUrl);
             return reply.send({avatar_url: avatarUrl});

@@ -5,7 +5,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function SignupForm() {
   const { lang } = useLanguage(); // Récupère la langue depuis le contexte
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3030";
 
   const t = {
     fr: {
@@ -91,7 +90,7 @@ export default function SignupForm() {
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/signup`, {
+      const res = await fetch(`/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
