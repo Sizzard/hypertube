@@ -1,7 +1,33 @@
 "use client";
+
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const translations = {
+  fr: {
+    title: "Réinitialiser le mot de passe",
+    placeholder: "Votre adresse email",
+    submit: "Envoyer le lien",
+    sending: "Envoi...",
+    success: "📧 Un lien de réinitialisation a été envoyé à votre adresse email si elle existe.",
+    error: "Une erreur est survenue.",
+    serverError: "Erreur serveur.",
+  },
+  en: {
+    title: "Reset Password",
+    placeholder: "Your email address",
+    submit: "Send link",
+    sending: "Sending...",
+    success: "📧 A reset link has been sent to your email address if it exists.",
+    error: "An error occurred.",
+    serverError: "Server error.",
+  },
+};
 
 export default function ResetPasswordPage() {
+  const { lang } = useLanguage();
+  const t = translations[lang];
+
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,12 +46,12 @@ export default function ResetPasswordPage() {
       const data = await res.json();
 
       if (res.ok) {
-        setMessage("📧 Un lien de réinitialisation a été envoyé à votre adresse email.");
+        setMessage(t.success);
       } else {
-        setMessage(data.error || "Une erreur est survenue.");
+        setMessage(data.error || t.error);
       }
     } catch {
-      setMessage("Erreur serveur.");
+      setMessage(t.serverError);
     } finally {
       setLoading(false);
     }
@@ -38,12 +64,12 @@ export default function ResetPasswordPage() {
         className="bg-gray-800 p-6 rounded-lg shadow-md border border-yellow-400 w-96"
       >
         <h1 className="text-2xl font-bold text-yellow-400 mb-4 text-center">
-          Réinitialiser le mot de passe
+          {t.title}
         </h1>
 
         <input
           type="email"
-          placeholder="Votre adresse email"
+          placeholder={t.placeholder}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 mb-4 focus:outline-none focus:border-yellow-400"
@@ -55,7 +81,7 @@ export default function ResetPasswordPage() {
           disabled={loading}
           className="w-full bg-yellow-400 text-gray-900 py-2 rounded hover:bg-yellow-300 transition"
         >
-          {loading ? "Envoi..." : "Envoyer le lien"}
+          {loading ? t.sending : t.submit}
         </button>
 
         {message && (

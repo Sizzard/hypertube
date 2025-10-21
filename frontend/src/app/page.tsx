@@ -1,5 +1,9 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export default function RootPage() {
-  redirect("/en");
+import Home from "@/components/Home";
+
+export default function Page() {
+  return (
+      <Home />
+  );
 }

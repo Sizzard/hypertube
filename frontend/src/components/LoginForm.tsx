@@ -1,11 +1,16 @@
 "use client";
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 
-export default function LoginForm() {
-  const pathname = usePathname();
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+interface LoginFormProps {
+  onSuccess?: () => void; // <-- nouvelle prop pour fermer le slide
+}
+
+export default function LoginForm({ onSuccess }: LoginFormProps) {
+  const { lang } = useLanguage(); 
   const router = useRouter();
-  const currentLocale = pathname?.startsWith("/en") ? "en" : "fr";
 
   const t = {
     fr: {
@@ -34,7 +39,7 @@ export default function LoginForm() {
       wrongCredentials: "❌ Incorrect username or password.",
       default: "❌ An error has occurred, please try again later.",
     },
-  }[currentLocale];
+  }[lang];
 
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
@@ -78,9 +83,13 @@ export default function LoginForm() {
 
       if (res.ok && data.token) {
         localStorage.setItem("token", data.token);
-        console.log("User connected:", data);
         setSuccess(true);
-        setTimeout(() => window.location.reload(), 500);
+
+        // Fermer le slide
+        if (onSuccess) onSuccess();
+
+        // Rediriger vers l'accueil
+        router.push("/");
       } else {
         setServerError(t.wrongCredentials);
       }
@@ -93,22 +102,15 @@ export default function LoginForm() {
 
   const handle42Connect = () => {
     const redirectUrl = process.env.NEXT_PUBLIC_API_42;
-    if (!redirectUrl) {
-      console.error("NEXT_PUBLIC_API_42 is not defined in .env");
-      return;
-    }
+    if (!redirectUrl) return;
     window.location.href = redirectUrl;
   };
 
   const handleGithubConnect = () => {
     const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
     const redirectUri = process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI;
-    if (!clientId || !redirectUri) {
-      console.error("Variables NEXT_PUBLIC_GITHUB_CLIENT_ID ou REDIRECT_URI non définies");
-      return;
-    }
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user%20user:email`;
-    window.location.href = githubAuthUrl;
+    if (!clientId || !redirectUri) return;
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user%20user:email`;
   };
 
   return (
@@ -118,7 +120,6 @@ export default function LoginForm() {
     >
       <h2 className="text-2xl font-bold text-yellow-400 mb-4">{t.title}</h2>
 
-      {/* Username */}
       <div className="mb-4">
         <label className="block text-sm font-medium mb-1">{t.username}</label>
         <input
@@ -131,7 +132,6 @@ export default function LoginForm() {
         {errors.username && <p className="text-red-500 text-sm mt-1">{errors.username}</p>}
       </div>
 
-      {/* Password */}
       <div className="mb-2">
         <label className="block text-sm font-medium mb-1">{t.password}</label>
         <input
@@ -144,7 +144,6 @@ export default function LoginForm() {
         {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
       </div>
 
-      {/* Forgot password */}
       <div className="text-right mb-4">
         <button
           type="button"
@@ -155,7 +154,6 @@ export default function LoginForm() {
         </button>
       </div>
 
-      {/* Login button */}
       <button
         type="submit"
         disabled={loading}
@@ -168,7 +166,6 @@ export default function LoginForm() {
         {loading ? t.loading : t.loginBtn}
       </button>
 
-      {/* OAuth */}
       <button
         type="button"
         onClick={handle42Connect}
@@ -185,13 +182,8 @@ export default function LoginForm() {
         GitHub Connect
       </button>
 
-      {/* Messages */}
-      {serverError && (
-        <p className="text-red-500 text-center mt-4 font-semibold">{serverError}</p>
-      )}
-      {success && (
-        <p className="text-green-400 text-center mt-4 font-semibold">{t.success}</p>
-      )}
+      {serverError && <p className="text-red-500 text-center mt-4 font-semibold">{serverError}</p>}
+      {success && <p className="text-green-400 text-center mt-4 font-semibold">{t.success}</p>}
     </form>
   );
 }
