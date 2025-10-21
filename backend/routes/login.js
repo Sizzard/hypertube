@@ -33,10 +33,9 @@ export default async function signupRoutes(fastify, opts) {
                 {
                     id: user.rows[0].id,
                     username: user.rows[0].username,
-                    username: user.rows[0].username,
                 },
                 process.env.JWT_SECRET,
-                {expiresIn: "12h"}
+                {expiresIn: "4h"}
             );
 
             return reply.code(201).send({message: "CONNECTED", token});
