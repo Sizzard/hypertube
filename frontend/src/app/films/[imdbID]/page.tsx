@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import FilmsStream from "@/components/FilmsStream";
 
 interface FilmDetails {
   id: number;
@@ -189,6 +190,10 @@ export default function FilmDetailPage() {
             {t.back}
           </a>
         </div>
+      </div>
+
+      <div className="max-w-5xl w-full mt-10">
+        <FilmsStream /> 
       </div>
     </div>
   );
