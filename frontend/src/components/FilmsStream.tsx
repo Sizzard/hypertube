@@ -1,62 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function FilmsStream() {
-  const [response, setResponse] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState("idle");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [error, setError] = useState("");
 
-  const testMagnet = "magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny";
+  useEffect(() => {
+    const fetchTorrent = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("❌ Vous devez être connecté pour télécharger un film.");
+          return;
+        }
 
-  const handleStart = async () => {
-    setLoading(true);
-    setError(null);
+        setStatus("downloading...");
 
-    try {
+        // Magnet officiel Big Buck Bunny (domaine public)
+        const magnet =
+          "magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny";
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Login required");
-      setLoading(false);
-      return;
-    }
+        const res = await fetch(
+          `/api/download-torrent?magnet=${encodeURIComponent(magnet)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-      const res = await fetch(`/api/download-torrent?magnet=${encodeURIComponent(testMagnet)}` , {
-           headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Erreur inconnue");
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+
+        const data = await res.json();
+
+        if (data.status === "completed" && data.filePath) {
+          setVideoUrl(`/api/stream/${data.filePath}`);
+          setStatus("ready");
+        } else {
+          setStatus("processing...");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("❌ Une erreur est survenue lors du téléchargement.");
+        setStatus("error");
       }
-      // suppose que le backend renvoie { message: "Téléchargement démarré", torrentId: "..." }
-      setResponse(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      console.error("Erreur FilmsStream:", err);
-      setError(err.message || "Erreur inconnue");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  return (
-    <div className="p-6 bg-gray-800 rounded-lg text-white max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Stream Torrent Test</h2>
-      <button
-        onClick={handleStart}
-        disabled={loading}
-        className="px-4 py-2 bg-yellow-400 text-gray-900 rounded hover:bg-yellow-300 disabled:opacity-50"
-      >
-        {loading ? "Démarrage..." : "Démarrer le téléchargement (Big Buck Bunny)"}
-      </button>
-      {response && (
-        <pre className="mt-4 bg-gray-900 p-4 rounded text-sm whitespace-pre-wrap break-all">
-          {response}
-        </pre>
-      )}
-      {error && (
-        <p className="mt-4 text-red-500">Erreur : {error}</p>
-      )}
-    </div>
-  );
+    fetchTorrent();
+  }, []);
+
+  if (error) return <p className="text-red-400 mt-4">{error}</p>;
+
+  if (status === "downloading..." || status === "processing...")
+    return <p className="text-yellow-400 mt-4">⏳ Téléchargement du film en cours...</p>;
+
+  if (status === "ready" && videoUrl)
+    return (
+      <div className="mt-6 w-full max-w-4xl">
+        <video controls width="100%" className="rounded-lg shadow-lg border border-yellow-400">
+          <source src={videoUrl} type="video/mp4" />
+          Votre navigateur ne supporte pas la lecture vidéo.
+        </video>
+      </div>
+    );
+
+  return <p className="text-gray-400 mt-4">En attente de téléchargement...</p>;
 }
