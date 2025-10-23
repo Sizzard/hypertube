@@ -61,7 +61,7 @@ services:
       - WEBUI_USERNAME=admin
       - WEBUI_PASSWORD=adminadmin
     volumes:
-      - ./config/qbittorrent/qbittorrent.conf:/config
+      - ./config/qBittorrent:/config
       - ./downloads:/downloads
     ports:
       - "8081:8081"
