@@ -28,10 +28,10 @@ async function qbtFetch(endpoint, options) {
         await loginQbittorrent();
     }
 
-    const res = await fetch(`http://qbittorrent:8080/${endpoint}`, {
+    const res = await fetch(`http://qbittorrent:8080${endpoint}`, {
         ...options,
         headers: {
-            ...fetch(options.headers || {}),
+            ...(options.headers || {}),
             Cookie: qbtCookie,
         },
     });
