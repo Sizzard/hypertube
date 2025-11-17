@@ -2,25 +2,25 @@
 
 import { useEffect, useState, useRef } from "react";
 
-export default function FilmsStream() {
+interface FilmsStreamProps {
+  imdb_id: string | number;
+}
+
+export default function FilmsStream({imdb_id} : FilmsStreamProps) {
   const [status, setStatus] = useState("idle");
   const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState("");
   const [error, setError] = useState("");
 
-  const magnet =
-    "magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny";
-
-  const hash = magnet.match(/btih:([a-fA-F0-9]+)/)?.[1] ?? "";
-
   const initialized = useRef(false);
   const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!hash) {
-      setError("Hash introuvable dans le magnet.");
+    if (!imdb_id) {
+      setError("Imdb ID introuvable dans le magnet.");
       return;
     }
+
 
     if (initialized.current) return;
     initialized.current = true;
@@ -34,9 +34,10 @@ export default function FilmsStream() {
     const startDownload = async () => {
       try {
         setStatus("starting");
+        console.log("IMDB_ID : ", imdb_id);
 
         const res = await fetch(
-          `/api/download-torrent?magnet=${encodeURIComponent(magnet)}`,
+          `/api/download-torrent?imdb_id=${imdb_id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -56,34 +57,34 @@ export default function FilmsStream() {
 
     startDownload();
 
-    intervalRef.current = window.setInterval(async () => {
-      try {
-        const res = await fetch(`/api/status-torrent?hash=${hash}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+    // intervalRef.current = window.setInterval(async () => {
+    //   try {
+    //     const res = await fetch(`/api/status-torrent?hash=${hash}`, {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //         "Content-Type": "application/json",
+    //       },
+    //     });
 
-        if (!res.ok) return;
+    //     if (!res.ok) return;
 
-        const data = await res.json();
+    //     const data = await res.json();
 
-        if (data.progress !== undefined) {
-          setProgress(Math.round(data.progress * 100));
-        }
+    //     if (data.progress !== undefined) {
+    //       setProgress(Math.round(data.progress * 100));
+    //     }
 
 
-      if (data.progress === 1 && data.filePath) {
-        setVideoUrl(`/stream/${data.filePath}`);
-        setStatus("ready");
-        if (intervalRef.current !== null) clearInterval(intervalRef.current);
-      }
-      } catch (err) {
-        console.error("Erreur polling :", err);
-      }
-    }, 3000);
-  }, [hash]);
+    //   if (data.progress === 1 && data.filePath) {
+    //     setVideoUrl(`/stream/${data.filePath}`);
+    //     setStatus("ready");
+    //     if (intervalRef.current !== null) clearInterval(intervalRef.current);
+    //   }
+    //   } catch (err) {
+    //     console.error("Erreur polling :", err);
+    //   }
+    // }, 3000);
+  }, []);
 
   if (error) return <p className="text-red-400 mt-4">{error}</p>;
 

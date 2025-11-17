@@ -193,7 +193,7 @@ export default function FilmDetailPage() {
       </div>
 
       <div className="max-w-5xl w-full mt-10">
-        <FilmsStream /> 
+        <FilmsStream imdb_id={film.imdb_id} /> 
       </div>
     </div>
   );

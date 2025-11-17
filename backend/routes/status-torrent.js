@@ -23,7 +23,7 @@ export default async function statusTorrent(fastify, opts) {
 
             const infoTorrents = await dlRes.json();
 
-            console.log("Received : ", infoTorrents);
+            // console.log("Received : ", infoTorrents);
 
             const matches = infoTorrents.filter(t =>t.hash.includes(hash));
 
@@ -31,11 +31,30 @@ export default async function statusTorrent(fastify, opts) {
                 throw new Error("BAD_REQUEST");
             }
 
-            console.log("json : ", matches[0]);
+            // console.log("Hash match : ", matches[0]);
+
+            const files = await qbit.qbtFetch(`/api/v2/torrents/files?hash=${hash}`, {
+                headers: {
+                    "Content-type": "application/x-www-form-urlencoded",
+                },
+            });
+
+            const supportedFileFormat = [".mp4", ".mkv"];
+
+            const filesTree = await files.json();
+
+            // console.log("File tree : ", filesTree);
+
+            const fileMatch = filesTree.filter(t => 
+                supportedFileFormat.some( ext => t.name.endsWith(ext)));
+
+            if (!fileMatch) {
+                throw new Error("BAD_REQUEST");
+            }
 
             const response = {
                 progress: matches[0].progress,
-                filePath: matches[0].content_path
+                filePath: fileMatch[0].name
             };
 
             console.log("response :", JSON.stringify(response, null, 2));
