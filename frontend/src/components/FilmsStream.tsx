@@ -1,26 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function FilmsStream() {
   const [status, setStatus] = useState("idle");
+  const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState("");
   const [error, setError] = useState("");
 
+  const magnet =
+    "magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny";
+
+  const hash = magnet.match(/btih:([a-fA-F0-9]+)/)?.[1] ?? "";
+
+  const initialized = useRef(false);
+  const intervalRef = useRef<number | null>(null);
+
   useEffect(() => {
-    const fetchTorrent = async () => {
+    if (!hash) {
+      setError("Hash introuvable dans le magnet.");
+      return;
+    }
+
+    if (initialized.current) return;
+    initialized.current = true;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("❌ Vous devez être connecté.");
+      return;
+    }
+
+    const startDownload = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          setError("❌ Vous devez être connecté pour télécharger un film.");
-          return;
-        }
-
-        setStatus("downloading...");
-
-        // Magnet officiel Big Buck Bunny (domaine public)
-        const magnet =
-          "magnet:?xt=urn:btih:dd8255ecdc7ca55fb0bbf81323d87062db1f6d1c&dn=Big+Buck+Bunny";
+        setStatus("starting");
 
         const res = await fetch(
           `/api/download-torrent?magnet=${encodeURIComponent(magnet)}`,
@@ -32,30 +45,57 @@ export default function FilmsStream() {
           }
         );
 
-        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        if (!res.ok) throw new Error("Erreur lancement torrent");
 
-        const data = await res.json();
-
-        if (data.status === "completed" && data.filePath) {
-          setVideoUrl(`/api/stream/${data.filePath}`);
-          setStatus("ready");
-        } else {
-          setStatus("processing...");
-        }
+        setStatus("downloading");
       } catch (err) {
         console.error(err);
-        setError("❌ Une erreur est survenue lors du téléchargement.");
-        setStatus("error");
+        setError("❌ Impossible de lancer le téléchargement.");
       }
     };
 
-    fetchTorrent();
-  }, []);
+    startDownload();
+
+    intervalRef.current = window.setInterval(async () => {
+      try {
+        const res = await fetch(`/api/status-torrent?hash=${hash}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        if (data.progress !== undefined) {
+          setProgress(Math.round(data.progress * 100));
+        }
+
+
+      if (data.progress === 1 && data.filePath) {
+        setVideoUrl(`/stream/${data.filePath}`);
+        setStatus("ready");
+        if (intervalRef.current !== null) clearInterval(intervalRef.current);
+      }
+      } catch (err) {
+        console.error("Erreur polling :", err);
+      }
+    }, 3000);
+  }, [hash]);
 
   if (error) return <p className="text-red-400 mt-4">{error}</p>;
 
-  if (status === "downloading..." || status === "processing...")
-    return <p className="text-yellow-400 mt-4">⏳ Téléchargement du film en cours...</p>;
+  if (status === "starting")
+    return <p className="text-yellow-400 mt-4">Initialisation…</p>;
+
+  if (status === "downloading")
+    return (
+      <p className="text-yellow-400 mt-4">
+        Téléchargement : {progress}%
+      </p>
+    );
 
   if (status === "ready" && videoUrl)
     return (
@@ -64,8 +104,12 @@ export default function FilmsStream() {
           <source src={videoUrl} type="video/mp4" />
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
+
+        <p className="text-green-400 pt-3 text-sm">
+          Téléchargement total : {progress}%
+        </p>
       </div>
     );
 
-  return <p className="text-gray-400 mt-4">En attente de téléchargement...</p>;
+  return <p className="text-gray-400 mt-4">En attente…</p>;
 }

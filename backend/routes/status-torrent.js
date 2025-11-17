@@ -1,50 +1,46 @@
 import verifyJWT from "./verifyJWT.js";
+import qbit from "../utils/qbtFetch.js";
 
 export default async function statusTorrent(fastify, opts) {
     fastify.get("/status-torrent", {preHandler: [verifyJWT]}, async (request, reply) => {
         try {
-            const id = request.query.id
-            if (!id) {
+            const hash = request.query.hash
+            if (!hash) {
                 throw new Error("BAD_REQUEST");
             }
-            const loginRes = await fetch("http://qbittorrent:8080/api/v2/auth/login", {
-                method: "POST",
-                headers: { "Content-type" : "application/x-www-form-urlencoded"},
-                body: new URLSearchParams({
-                    username: "admin",
-                    password: "adminadmin",
-                }),
-            });
 
-            if (!loginRes.ok) {
-                throw new Error("Login Failed");
-            }
-            console.log(loginRes);
-            const cookie = loginRes.headers.get("set-cookie");
-            
-            if(!cookie) {
-                throw new Error("No auth cookie received");
-            }
+            console.log("Requesting info torrents");
 
-            const dlRes = await fetch("http://qbittorrent:8080/api/v2/torrents/add", {
-                method: "POST",
+            const dlRes = await qbit.qbtFetch(`/api/v2/torrents/info`, {
                 headers: {
                     "Content-type": "application/x-www-form-urlencoded",
-                    cookie,
                 },
-                body: new URLSearchParams({
-                    urls: magnet,
-                    savepath: "/downloads",
-                    sequentialDownload: "true",
-                    paused: "false",
-                }),
             });
 
             if (!dlRes.ok) {
                 throw new Error("Failed to dl torrent");
             }
 
-            return reply.send({message: "Torrent added successfully"});
+            const infoTorrents = await dlRes.json();
+
+            console.log("Received : ", infoTorrents);
+
+            const matches = infoTorrents.filter(t =>t.hash.includes(hash));
+
+            if (!matches) {
+                throw new Error("BAD_REQUEST");
+            }
+
+            console.log("json : ", matches[0]);
+
+            const response = {
+                progress: matches[0].progress,
+                filePath: matches[0].content_path
+            };
+
+            console.log("response :", JSON.stringify(response, null, 2));
+
+            return reply.send(response);
         }
         catch (err) {
             console.log("ERROR STATUS TORRENT:", err);
