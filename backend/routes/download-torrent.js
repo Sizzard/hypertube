@@ -67,25 +67,25 @@ export default async function downloadTorrent(fastify, opts) {
             }
             // console.log("RESULTS :", result);
 
-            const filePath = await downloadTorrentFile(result.url);
-
-            const form = new FormData();
-
-            form.append("savepath", "/downloads");
-            form.append("sequentialDownload", "true");
-            form.append("paused", "false");
-            form.append("torrents", fs.createReadStream(filePath));
-
             const dlRes = await qbit.qbtFetch("/api/v2/torrents/add", {
                 method: "POST",
-                body: form,
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    urls: result.url, // URL direct du .torrent
+                    savepath: "/downloads",
+                    sequentialDownload: "true",
+                    paused: "false",
+                }),
             });
+
 
             if (!dlRes.ok) {
                 throw new Error("Failed to dl torrent");
             }
 
-            console.log("Torrent added successfully : ", dlRes.text());
+            console.log("Torrent added successfully : ", await dlRes.text());
             return reply.send({message: "Torrent added successfully"});
         }
         catch (err) {
