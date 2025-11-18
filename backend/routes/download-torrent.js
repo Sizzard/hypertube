@@ -77,6 +77,7 @@ export default async function downloadTorrent(fastify, opts) {
                     savepath: "/downloads",
                     sequentialDownload: "true",
                     paused: "false",
+                    category: imdb_id,
                 }),
             });
 

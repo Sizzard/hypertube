@@ -4,8 +4,8 @@ import qbit from "../utils/qbtFetch.js";
 export default async function statusTorrent(fastify, opts) {
     fastify.get("/status-torrent", {preHandler: [verifyJWT]}, async (request, reply) => {
         try {
-            const hash = request.query.hash
-            if (!hash) {
+            const imdb_id = request.query.imdb_id
+            if (!imdb_id) {
                 throw new Error("BAD_REQUEST");
             }
 
@@ -23,23 +23,29 @@ export default async function statusTorrent(fastify, opts) {
 
             const infoTorrents = await dlRes.json();
 
-            // console.log("Received : ", infoTorrents);
+            console.log("Received : ", infoTorrents);
 
-            const matches = infoTorrents.filter(t =>t.hash.includes(hash));
+            const matches = infoTorrents.filter(t => t.category === imdb_id);
 
-            if (!matches) {
+            if (matches.length === 0) {
                 throw new Error("BAD_REQUEST");
             }
 
-            // console.log("Hash match : ", matches[0]);
+            console.log("imdb_id match : ", matches[0]);
 
-            const files = await qbit.qbtFetch(`/api/v2/torrents/files?hash=${hash}`, {
+            const files = await qbit.qbtFetch(`/api/v2/torrents/files?hash=${matches[0].hash}`, {
                 headers: {
                     "Content-type": "application/x-www-form-urlencoded",
                 },
             });
 
+            if (!files.ok) {
+                throw new Error("Failed to check torrent state");
+            }
+
             const supportedFileFormat = [".mp4", ".mkv"];
+
+            console.log(files);
 
             const filesTree = await files.json();
 

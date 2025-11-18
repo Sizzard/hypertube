@@ -57,33 +57,35 @@ export default function FilmsStream({imdb_id} : FilmsStreamProps) {
 
     startDownload();
 
-    // intervalRef.current = window.setInterval(async () => {
-    //   try {
-    //     const res = await fetch(`/api/status-torrent?hash=${hash}`, {
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //         "Content-Type": "application/json",
-    //       },
-    //     });
+    intervalRef.current = window.setInterval(async () => {
+      try {
+        const res = await fetch(`/api/status-torrent?imdb_id=${imdb_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
-    //     if (!res.ok) return;
+        if (!res.ok) return;
 
-    //     const data = await res.json();
+        const data = await res.json();
 
-    //     if (data.progress !== undefined) {
-    //       setProgress(Math.round(data.progress * 100));
-    //     }
+        if (data.progress !== undefined) {
+          setProgress(Math.round(data.progress * 100));
+        }
 
 
-    //   if (data.progress === 1 && data.filePath) {
-    //     setVideoUrl(`/stream/${data.filePath}`);
-    //     setStatus("ready");
-    //     if (intervalRef.current !== null) clearInterval(intervalRef.current);
-    //   }
-    //   } catch (err) {
-    //     console.error("Erreur polling :", err);
-    //   }
-    // }, 3000);
+      if (data.progress >= 0.1 && data.filePath) {
+        setVideoUrl(`/stream/${data.filePath}`);
+        setStatus("ready");
+        if (data.progress === 1) {
+          if (intervalRef.current !== null) clearInterval(intervalRef.current);
+        }
+      }
+      } catch (err) {
+        console.error("Erreur polling :", err);
+      }
+    }, 3000);
   }, []);
 
   if (error) return <p className="text-red-400 mt-4">{error}</p>;
