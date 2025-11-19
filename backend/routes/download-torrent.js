@@ -1,5 +1,6 @@
 import verifyJWT from "./verifyJWT.js";
 import qbit from "../utils/qbtFetch.js";
+import sub from "../utils/openSubFetch.js";
 
 import fs from "fs";
 import path from "path";
@@ -29,6 +30,54 @@ async function downloadTorrentFile(url) {
   }
 }
 
+function getBestEnglishSubtitle(subs) {
+  const enSubs = subs.filter((s) => s.attributes.language === "en");
+  if (!enSubs.length) return null;
+
+  return enSubs.reduce((prev, curr) =>
+    curr.attributes.download_count > prev.attributes.download_count ? curr : prev
+  );
+}
+
+async function downloadAndConvertSrt(srtUrl, outputPath) {
+  const res = await fetch(srtUrl);
+  if (!res.ok) throw new Error("Failed to download SRT");
+
+  const buffer = Buffer.from(await res.arrayBuffer());
+  fs.writeFileSync("/tmp/temp.srt", buffer);
+
+  fs.createReadStream("/tmp/temp.srt")
+    .pipe(srt2vtt())
+    .pipe(fs.createWriteStream(outputPath));
+
+  console.log("Subtitle converted to VTT:", outputPath);
+}
+
+export async function downloadSubtitles(imdb_id, outputPath) {
+  try {
+    const res = await sub.openSubFetch(`?imdb_id=${imdb_id}`);
+    const data = await res.json();
+
+    const bestSub = getBestEnglishSubtitle(data.data);
+    if (!bestSub) {
+      console.log("Aucun sous-titre EN trouvé");
+      return;
+    }
+
+    console.log("BestSub:", bestSub.attributes);
+
+    const downloadRes = await sub.openSubFetch(`/${bestSub.attributes.subtitle_id}/download`);
+    const downloadData = await downloadRes.json();
+    console.log("SUB", downloadData);
+    const srtUrl = downloadData.link;
+    if (!srtUrl) throw new Error("SRT download link missing");
+
+    await downloadAndConvertSrt(srtUrl, outputPath);
+  } catch (err) {
+    console.error("Error downloading subtitles:", err);
+  }
+}
+
 export default async function downloadTorrent(fastify, opts) {
     fastify.get("/download-torrent", {preHandler: [verifyJWT]}, async (request, reply) => {
         try {
@@ -38,9 +87,11 @@ export default async function downloadTorrent(fastify, opts) {
                 throw new Error("BAD_REQUEST");
             }
 
-            // console.log("IMDB_ID = ", imdb_id);
+            console.log("IMDB_ID = ", imdb_id);
 
-            const ytsRes = await fetch(`https://yts.mx/api/v2/movie_details.json?imdb_id=${imdb_id}`);
+            downloadSubtitles(imdb_id, "./downloads/en.vtt");
+
+            const ytsRes = await fetch(`https://yts.lt/api/v2/movie_details.json?imdb_id=${imdb_id}`);
 
             // console.log(ytsRes);
 
