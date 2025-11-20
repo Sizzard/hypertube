@@ -36,7 +36,7 @@ async function downloadAndConvertSrt(srtUrl, outputPath) {
   console.log("Subtitle saved as VTT:", outputPath);
 }
 
-export async function downloadSubtitles(imdb_id) {
+async function downloadSubtitles(imdb_id) {
   try {
 
     const imdbDir = path.join("/downloads", imdb_id);
@@ -82,9 +82,56 @@ export async function downloadSubtitles(imdb_id) {
   }
 }
 
+async function downloadTorrent(imdb_id) {
+    const ytsRes = await fetch(`https://yts.lt/api/v2/movie_details.json?imdb_id=${imdb_id}`);
+    // console.log(ytsRes);
+
+    const ytsInfo = await ytsRes.json();
+
+    if (!ytsInfo || !ytsInfo.data.movie.torrents) {
+        throw new Error("NO_INFO");
+    }
+
+    // console.log("YTS INFO : ", ytsInfo);
+    // console.log("TORRENTS INFO : ", ytsInfo.data.movie.torrents);
+
+    const match1080p = ytsInfo.data.movie.torrents.find(t => t.quality === '1080p' && t.peers > 0);
+
+    // console.log("MATCH 1080p :", match1080p);
+
+    const result = {
+        has1080pAvailable: !!match1080p, 
+        url: match1080p?.url || null   
+    };
+
+    if (result.has1080pAvailable === false) {
+        throw new Error("NO_PEERS");
+    }
+    // console.log("RESULTS :", result);
+
+    const dlRes = await qbit.qbtFetch("/api/v2/torrents/add", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+            urls: result.url, // URL direct du .torrent
+            savepath: "/downloads",
+            sequentialDownload: "true",
+            paused: "false",
+            category: imdb_id,
+        }),
+    });
 
 
-export default async function downloadTorrent(fastify, opts) {
+    if (!dlRes.ok) {
+        throw new Error("Failed to dl torrent");
+    }
+
+    console.log("Torrent added successfully : ", await dlRes.text());
+}
+
+export default async function downloadMovie(fastify, opts) {
     fastify.get("/download-torrent", {preHandler: [verifyJWT]}, async (request, reply) => {
         try {
             const imdb_id = request.query.imdb_id
@@ -95,55 +142,10 @@ export default async function downloadTorrent(fastify, opts) {
 
             console.log("IMDB_ID = ", imdb_id);
 
-            downloadSubtitles(imdb_id);
+	     downloadSubtitles(imdb_id);
 
-            const ytsRes = await fetch(`https://yts.lt/api/v2/movie_details.json?imdb_id=${imdb_id}`);
-
-            // console.log(ytsRes);
-
-            const ytsInfo = await ytsRes.json();
-
-            if (!ytsInfo || !ytsInfo.data.movie.torrents) {
-                throw new Error("NO_INFO");
-            }
-
-            // console.log("YTS INFO : ", ytsInfo);
-            // console.log("TORRENTS INFO : ", ytsInfo.data.movie.torrents);
-
-            const match1080p = ytsInfo.data.movie.torrents.find(t => t.quality === '1080p' && t.peers > 0);
-
-            // console.log("MATCH 1080p :", match1080p);
-
-            const result = {
-                has1080pAvailable: !!match1080p, 
-                url: match1080p?.url || null   
-            };
-
-            if (result.has1080pAvailable === false) {
-                throw new Error("NO_PEERS");
-            }
-            // console.log("RESULTS :", result);
-
-            const dlRes = await qbit.qbtFetch("/api/v2/torrents/add", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams({
-                    urls: result.url, // URL direct du .torrent
-                    savepath: "/downloads",
-                    sequentialDownload: "true",
-                    paused: "false",
-                    category: imdb_id,
-                }),
-            });
-
-
-            if (!dlRes.ok) {
-                throw new Error("Failed to dl torrent");
-            }
-
-            console.log("Torrent added successfully : ", await dlRes.text());
+	     downloadTorrent(imdb_id);
+           
             return reply.send({message: "Torrent added successfully"});
         }
         catch (err) {

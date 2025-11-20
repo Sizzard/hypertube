@@ -13,7 +13,7 @@ import Profile from './routes/profile.js';
 import Avatar from './routes/avatar.js';
 import SearchMovie from './routes/search-movie.js';
 import MovieDetails from './routes/movie-details.js';
-import DownloadTorrent from "./routes/download-torrent.js";
+import DownloadMovie from "./routes/download-torrent.js";
 import StatusTorrent from "./routes/status-torrent.js";
 import Ping from './routes/ping.js'
 import pkg from "pg";
@@ -49,7 +49,7 @@ await fastify.register(Profile, {prefix: "/api", pool});
 await fastify.register(Avatar, {prefix: "/api/avatar", pool});
 await fastify.register(SearchMovie, {prefix: "/api"});
 await fastify.register(MovieDetails, {prefix: "/api"});
-await fastify.register(DownloadTorrent, {prefix: "/api"});
+await fastify.register(DownloadMovie, {prefix: "/api"});
 await fastify.register(StatusTorrent, {prefix: "/api"});
 
 const start = async () => {
