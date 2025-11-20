@@ -15,7 +15,7 @@ export default async function searchMovie(fastify, opts) {
             if (!response.results) {
                 return reply.code(404).send({error: "NOT_FOUND"});
             }
-            console.log("BEFORE TRIM:", response.results);
+            // console.log("BEFORE TRIM:", response.results);
             const filtered = response.results
             .filter((movie) => !movie.adult && movie.poster_path && movie.vote_count > 500)
             .map((movie) => ({
@@ -30,7 +30,7 @@ export default async function searchMovie(fastify, opts) {
 
             filtered.sort((a, b) => a.title.localeCompare(b.title));
 
-            console.log("AFTER TRIM:", filtered);
+            // console.log("AFTER TRIM:", filtered);
             return reply.send({
                 page: response.page,
                 results: filtered,

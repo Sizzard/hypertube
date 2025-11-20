@@ -22,18 +22,7 @@ function srtToVtt(srtContent) {
   return vttContent.trim();
 }
 
-async function downloadAndConvertSrt(srtUrl, imdb_id) {
-
-  const basePath = "/downloads";
-
-  const imdbDir = path.join(basePath, imdb_id);
-  
-  if (!fs.existsSync(imdbDir)) {
-    console.log(`Le dossier ${imdbDir} n'existe pas, création...`);
-    fs.mkdirSync(imdbDir);
-  }
-
-  const outputPath = path.join(imdbDir, "en.vtt");
+async function downloadAndConvertSrt(srtUrl, outputPath) {
 
   const res = await fetch(srtUrl);
   if (!res.ok) throw new Error("Failed to download SRT");
@@ -49,6 +38,17 @@ async function downloadAndConvertSrt(srtUrl, imdb_id) {
 
 export async function downloadSubtitles(imdb_id) {
   try {
+
+    const imdbDir = path.join("/downloads", imdb_id);
+    const outputPath = path.join(imdbDir, "en.vtt");
+
+    if (fs.existsSync(imdbDir)) {
+      console.log(`Subtitles for ${outputPath} already exists not fetching`);
+      return;
+    }
+    fs.mkdirSync(imdbDir);
+
+
     const res = await sub.openSubFetch(`/subtitles?imdb_id=${imdb_id}&languages=en`);
     const data = await res.json();
 
@@ -76,11 +76,13 @@ export async function downloadSubtitles(imdb_id) {
     const srtUrl = downloadData.link;
     if (!srtUrl) throw new Error("SRT download link missing");
 
-    await downloadAndConvertSrt(srtUrl, imdb_id);
+    await downloadAndConvertSrt(srtUrl, outputPath);
   } catch (err) {
     console.error("Error downloading subtitles:", err);
   }
 }
+
+
 
 export default async function downloadTorrent(fastify, opts) {
     fastify.get("/download-torrent", {preHandler: [verifyJWT]}, async (request, reply) => {
