@@ -38,6 +38,7 @@ services:
     build: ./backend
     volumes:
     - ./backend:/app
+    - ./downloads:/downloads
     restart: always
     expose:
       - "3030"

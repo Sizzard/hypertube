@@ -5,57 +5,51 @@ import sub from "../utils/openSubFetch.js";
 import fs from "fs";
 import path from "path";
 
-async function downloadTorrentFile(url) {
-  try {
-    let fileName = path.basename(url);
-    if (!fileName.endsWith(".torrent")) {
-      fileName += ".torrent";
-    }
-    const downloadPath = path.join(process.cwd(), "downloads", "torrents", fileName);
-
-    fs.mkdirSync(path.dirname(downloadPath), { recursive: true });
-
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Erreur téléchargement : ${res.status}`);
-
-    const buffer = Buffer.from(await res.arrayBuffer());
-
-    fs.writeFileSync(downloadPath, buffer);
-
-    console.log(`Fichier téléchargé : ${downloadPath}`);
-    return downloadPath;
-  } catch (err) {
-    console.error("ERROR downloadTorrentFile:", err);
-    throw err;
-  }
-}
-
 function getBestEnglishSubtitle(subs) {
-  const enSubs = subs.filter((s) => s.attributes.language === "en");
-  if (!enSubs.length) return null;
-
-  return enSubs.reduce((prev, curr) =>
+  return subs.reduce((prev, curr) =>
     curr.attributes.download_count > prev.attributes.download_count ? curr : prev
   );
 }
 
-async function downloadAndConvertSrt(srtUrl, outputPath) {
+function srtToVtt(srtContent) {
+  const vttContent =
+    "WEBVTT\n\n" +
+    srtContent
+      .replace(/(\d+):(\d+):(\d+),(\d+)/g, "$1:$2:$3.$4")
+      .replace(/^\d+\s*$/gm, '')
+      .replace(/\n{3,}/g, "\n\n");
+
+  return vttContent.trim();
+}
+
+async function downloadAndConvertSrt(srtUrl, imdb_id) {
+
+  const basePath = "/downloads";
+
+  const imdbDir = path.join(basePath, imdb_id);
+  
+  if (!fs.existsSync(imdbDir)) {
+    console.log(`Le dossier ${imdbDir} n'existe pas, création...`);
+    fs.mkdirSync(imdbDir);
+  }
+
+  const outputPath = path.join(imdbDir, "en.vtt");
+
   const res = await fetch(srtUrl);
   if (!res.ok) throw new Error("Failed to download SRT");
 
   const buffer = Buffer.from(await res.arrayBuffer());
-  fs.writeFileSync("/tmp/temp.srt", buffer);
+  const srtContent = buffer.toString("utf8");
+  const vttContent = srtToVtt(srtContent);
 
-  fs.createReadStream("/tmp/temp.srt")
-    .pipe(srt2vtt())
-    .pipe(fs.createWriteStream(outputPath));
+  fs.writeFileSync(outputPath, vttContent, "utf8");
 
-  console.log("Subtitle converted to VTT:", outputPath);
+  console.log("Subtitle saved as VTT:", outputPath);
 }
 
-export async function downloadSubtitles(imdb_id, outputPath) {
+export async function downloadSubtitles(imdb_id) {
   try {
-    const res = await sub.openSubFetch(`?imdb_id=${imdb_id}`);
+    const res = await sub.openSubFetch(`/subtitles?imdb_id=${imdb_id}&languages=en`);
     const data = await res.json();
 
     const bestSub = getBestEnglishSubtitle(data.data);
@@ -64,15 +58,25 @@ export async function downloadSubtitles(imdb_id, outputPath) {
       return;
     }
 
-    console.log("BestSub:", bestSub.attributes);
+    console.log("BestSub.attributes :", bestSub.attributes);
+    console.log("BestSub.attributes.files :", bestSub.attributes.files);
+    console.log("bestSub.attributes.files[0].file_id :", bestSub.attributes.files[0].file_id);
 
-    const downloadRes = await sub.openSubFetch(`/${bestSub.attributes.subtitle_id}/download`);
+    const downloadRes = await sub.openSubFetch(`/download`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          file_id: bestSub.attributes.files[0].file_id,
+        }),
+    });
     const downloadData = await downloadRes.json();
-    console.log("SUB", downloadData);
+
+    console.log("downloadData : ", downloadData);
+    console.log("downloadData.link : ", downloadData.link);
     const srtUrl = downloadData.link;
     if (!srtUrl) throw new Error("SRT download link missing");
 
-    await downloadAndConvertSrt(srtUrl, outputPath);
+    await downloadAndConvertSrt(srtUrl, imdb_id);
   } catch (err) {
     console.error("Error downloading subtitles:", err);
   }
@@ -89,7 +93,7 @@ export default async function downloadTorrent(fastify, opts) {
 
             console.log("IMDB_ID = ", imdb_id);
 
-            downloadSubtitles(imdb_id, "./downloads/en.vtt");
+            downloadSubtitles(imdb_id);
 
             const ytsRes = await fetch(`https://yts.lt/api/v2/movie_details.json?imdb_id=${imdb_id}`);
 

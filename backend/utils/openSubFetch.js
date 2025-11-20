@@ -31,7 +31,7 @@ async function openSubFetch(endpoint, options = {}) {
         await loginOpenSubTitle();
     }
 
-    const res = await fetch(`https://api.opensubtitles.com/api/v1/subtitles${endpoint}`, {
+    const res = await fetch(`https://api.opensubtitles.com/api/v1${endpoint}`, {
         ...options,
         headers: {
             "Accept": "application/json",

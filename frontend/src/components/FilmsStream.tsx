@@ -11,6 +11,8 @@ export default function FilmsStream({imdb_id} : FilmsStreamProps) {
   const [progress, setProgress] = useState(0);
   const [videoUrl, setVideoUrl] = useState("");
   const [error, setError] = useState("");
+  const [subtitleOffset, setSubtitleOffset] = useState(0);
+  const [subtitleUrl, setSubtitleUrl] = useState("");
 
   const initialized = useRef(false);
   const intervalRef = useRef<number | null>(null);
@@ -103,8 +105,21 @@ export default function FilmsStream({imdb_id} : FilmsStreamProps) {
   if (status === "ready" && videoUrl)
     return (
       <div className="mt-6 w-full max-w-4xl">
-        <video controls width="100%" className="rounded-lg shadow-lg border border-yellow-400">
+        <video
+          controls
+          width="100%"
+          className="rounded-lg shadow-lg border border-yellow-400"
+        >
           <source src={videoUrl} type="video/mp4" />
+
+          <track
+            src={`/stream/${imdb_id}/en.vtt`}
+            kind="subtitles"
+            srcLang="en"
+            label="English"
+            default
+          />
+
           Votre navigateur ne supporte pas la lecture vidéo.
         </video>
 
