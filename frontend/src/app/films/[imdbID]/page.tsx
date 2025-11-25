@@ -196,9 +196,9 @@ export default function FilmDetailPage() {
         <FilmsStream imdb_id={film.imdb_id} /> 
       </div>
 
-      {/* <div className="max-w-5xl w-full mt-10">
+      <div className="max-w-5xl w-full mt-10">
         <FilmComments imdb_id={film.imdb_id} /> 
-      </div> */}
+      </div>
     </div>
   );
 }

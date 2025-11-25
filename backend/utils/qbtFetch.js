@@ -5,8 +5,8 @@ async function loginQbittorrent() {
         method: "POST",
         headers: { "Content-type" : "application/x-www-form-urlencoded"},
         body: new URLSearchParams({
-            username: "admin",
-            password: "adminadmin",
+            username: process.env.QBT_USER,
+            password: process.env.QBT_PASS,
         }),
     });
 

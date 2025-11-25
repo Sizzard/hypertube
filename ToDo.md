@@ -6,6 +6,4 @@
 
 ## 4 - Adding comments section to movie
 
-## 5 - Removing "Serie" section from the site
-
-## 6 - Develop a RESTful API with an OAuth2 authentication 
+## 5 - Develop a RESTful API with an OAuth2 authentication 

@@ -69,7 +69,7 @@ export default function Header() {
 
         <nav className="hidden md:flex space-x-6">
           <Link href="/films" className="hover:text-yellow-400 transition">{t.films}</Link>
-          <Link href="/series" className="hover:text-yellow-400 transition">{t.series}</Link>
+          {/* <Link href="/series" className="hover:text-yellow-400 transition">{t.series}</Link> */}
         </nav>
 
         <nav className="flex space-x-4 items-center">

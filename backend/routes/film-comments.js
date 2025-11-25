@@ -1,23 +1,28 @@
-export default async function filmComments(fastify, opts) {
-    fastify.get("/film-comments", {preHandler: [verifyJWT]}, async (request, reply) => {
+import jwt from "jsonwebtoken";
+import verifyJWT from "./verifyJWT.js";
+
+export default async function comments(fastify, opts) {
+    const pool = opts.pool;
+    fastify.get("/comments", {preHandler: [verifyJWT]}, async (request, reply) => {
         try {
-            const imdb_id = request.query.imdb_id
-            
-            if (!imdb_id) {
-                throw new Error("BAD_REQUEST");
-            }
+	    const user_id = request.user.id;
+	    if (!user_id) {
+            	return reply.code(400).send({ error: "BAD_REQUEST" });
+	    }
 
-            console.log("IMDB_ID = ", imdb_id);
+            const imdb_id = request.query.imdb_id;
+	    if (!imdb_id) {
+            	return reply.code(400).send({ error: "BAD_REQUEST" });
+	    }
 
-            // downloadSubtitles(imdb_id);
+            const result = await pool.query('SELECT * from comments WHERE id = $1',
+                [imdb_id],
+            );
+	    console.log(result.rows);
 
-            // downloadTorrent(imdb_id);
-           
-            return reply.send({message: "Torrent added successfully"});
-        }
-        catch (err) {
-            console.log("ERROR DOWNLOAD TORRENT:", err);
-            return reply.code(400).send({error: "BAD_REQUEST"});
+            reply.send(result.rows[0]);
+        } catch (err) {
+            fastify.log.error(err);
+            return reply.code(400).send({ error: "BAD_REQUEST" });
         }
     });
-}
