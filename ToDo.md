@@ -1,7 +1,5 @@
-## 1 - Check that the User Interface modification works fine, (profile picture change)
+## 1 - Differentiate Watched and Unwatched videos
 
-## 2 - Differentiate Watched and Unwatched videos
+## 2 - If no research was done, the app will display the most popular video from the external sources
 
-## 3 - If no research was done, the app will display the most popular video from the external sources
-
-## 4 - Develop a RESTful API with an OAuth2 authentication 
+## 3 - Develop a RESTful API with an OAuth2 authentication 
