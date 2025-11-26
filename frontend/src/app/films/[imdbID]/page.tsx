@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FilmsStream from "@/components/FilmsStream";
+import FilmComments from "@/components/FilmComments";
 
 interface FilmDetails {
   id: number;

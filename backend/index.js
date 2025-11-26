@@ -15,6 +15,7 @@ import SearchMovie from './routes/search-movie.js';
 import MovieDetails from './routes/movie-details.js';
 import DownloadMovie from "./routes/download-torrent.js";
 import StatusTorrent from "./routes/status-torrent.js";
+import Comments from "./routes/film-comments.js";
 import Ping from './routes/ping.js'
 import pkg from "pg";
 const { Pool } = pkg;
@@ -51,6 +52,7 @@ await fastify.register(SearchMovie, {prefix: "/api"});
 await fastify.register(MovieDetails, {prefix: "/api"});
 await fastify.register(DownloadMovie, {prefix: "/api"});
 await fastify.register(StatusTorrent, {prefix: "/api"});
+await fastify.register(Comments, {prefix: "/api", pool});
 
 const start = async () => {
   try {

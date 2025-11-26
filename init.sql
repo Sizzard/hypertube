@@ -18,8 +18,8 @@ CREATE TABLE users (
 CREATE TABLE comments (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    movie_id TEXT NOT NULL,
-    content TEXT NOT NULL,
+    imdb_id VARCHAR(20) NOT NULL,
+    content VARCHAR(200) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

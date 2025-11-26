@@ -87,7 +87,7 @@ export default function FilmsStream({imdb_id} : FilmsStreamProps) {
       } catch (err) {
         console.error("Erreur polling :", err);
       }
-    }, 3000);
+    }, 300000);
   }, []);
 
   if (error) return <p className="text-red-400 mt-4">{error}</p>;

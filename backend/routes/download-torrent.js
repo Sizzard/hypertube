@@ -142,9 +142,9 @@ export default async function downloadMovie(fastify, opts) {
 
             console.log("IMDB_ID = ", imdb_id);
 
-	     downloadSubtitles(imdb_id);
+	    //  downloadSubtitles(imdb_id);
 
-	     downloadTorrent(imdb_id);
+	    //  downloadTorrent(imdb_id);
            
             return reply.send({message: "Torrent added successfully"});
         }
