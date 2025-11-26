@@ -25,16 +25,16 @@ export default async function profile(fastify, opts) {
                 "SELECT username, first_name, last_name, avatar_filename FROM users WHERE username=$1",
                 [username],
             );
-            console.log("USERNAME:", username);
-            console.log("RESULT:", result);
-            console.log("RESULT LEN :", result.rows.length);
+            // console.log("USERNAME:", username);
+            // console.log("RESULT:", result);
+            // console.log("RESULT LEN :", result.rows.length);
 
             if (result.rows.length === 0) {
                 throw new Error("USER_DOES_NOT_EXIST");
             }
             const user = result.rows[0];
             const avatarUrl = user.avatar_filename
-                ? `backend/uploads/${user.avatar_filename}`
+                ? `/pictures/${user.avatar_filename}`
                 : "/default.jpg";
 
             return reply.send({
@@ -46,7 +46,7 @@ export default async function profile(fastify, opts) {
         } catch(err) {
             console.log("ERROR GET PULBIC PROFILE:", err);
             if (err.message === "USER_DOES_NOT_EXIST") {
-            return reply.code(400).send({error: "USER_DOES_NOT_EXIST"});
+                return reply.code(404).send({error: "USER_DOES_NOT_EXIST"});
             }
             return reply.code(400).send({error: "BAD_REQUEST"});
         }

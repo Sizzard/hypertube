@@ -23,3 +23,12 @@ CREATE TABLE comments (
     created_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE user_progress (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    imdb_id VARCHAR(20) NOT NULL,
+    last_watched_position INT DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user_id, imdb_id)
+);

@@ -63,3 +63,6 @@ backend/.next
 data
 
 .*
+
+/backend/uploads
+!/backend/uploads/default.jpg

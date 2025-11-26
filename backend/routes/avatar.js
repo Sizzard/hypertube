@@ -4,7 +4,7 @@ import path from "path";
 import crypto from "crypto";
 import verifyJWT from "./verifyJWT.js";
 
-const uploadDir = path.join(process.cwd(), "uploads");
+const uploadDir ="/uploads";
 
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
@@ -77,7 +77,10 @@ export default async function avatarUpload(fastify, opts) {
                 "UPDATE users SET avatar_filename=$1 WHERE id=$2",
                 [request.file.filename, request.user.id],
             );
-            reply.send({ok: true});
+
+            const avatarUrl = `/pictures/${request.file.filename}`;
+
+            reply.send({ok: true, avatar_url: avatarUrl});
         }catch(err) {
             console.log("ERROR DURING FILE UPLOAD",err);
             return reply.code(400).send({error: err.code});
@@ -96,7 +99,7 @@ export default async function avatarUpload(fastify, opts) {
 
             // console.log("GET AVATAR, SENDING IMAGE OF : ", username);
 
-            const avatarUrl = `backend/uploads/${user.rows[0].avatar_filename || "default.jpg"}`;
+            const avatarUrl = `/pictures/${user.rows[0].avatar_filename || "default.jpg"}`;
 
             // console.log("avatarUrl:", avatarUrl);
             return reply.send({avatar_url: avatarUrl});

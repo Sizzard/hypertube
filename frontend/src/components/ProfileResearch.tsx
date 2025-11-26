@@ -1,15 +1,18 @@
+// components/ResearchProfile.tsx
 "use client";
 
 import { useState } from "react";
 
-export default function UserSearchBar() {
+interface UserProfile {
+  username: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string;
+}
+
+export default function ResearchProfile() {
   const [search, setSearch] = useState("");
-  const [userProfile, setUserProfile] = useState<{
-    username: string;
-    first_name: string;
-    last_name: string;
-    avatar_url: string;
-  } | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [message, setMessage] = useState("");
 
   const handleSearch = async () => {
@@ -35,9 +38,11 @@ export default function UserSearchBar() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.error === "USER_DOES_NOT_EXIST"
-          ? "❌ Utilisateur introuvable."
-          : "❌ Erreur lors de la recherche.");
+        setMessage(
+          data.error === "USER_DOES_NOT_EXIST"
+            ? "❌ Utilisateur introuvable."
+            : "❌ Erreur lors de la recherche."
+        );
         return;
       }
 
@@ -49,10 +54,9 @@ export default function UserSearchBar() {
   };
 
   return (
-    <div className="flex flex-col items-center bg-gray-800 p-6 rounded-2xl shadow-md border border-yellow-400 w-full max-w-md mx-auto">
+    <div className="flex flex-col items-center bg-gray-800 p-6 rounded-2xl shadow-md border border-yellow-400 w-full mb-8">
       <h2 className="text-2xl font-bold text-yellow-400 mb-4">🔍 Rechercher un utilisateur</h2>
 
-      {/* Barre de recherche */}
       <div className="flex w-full mb-4">
         <input
           type="text"
@@ -69,21 +73,15 @@ export default function UserSearchBar() {
         </button>
       </div>
 
-      {/* Message d'erreur ou d'info */}
-      {message && (
-        <p className="text-yellow-400 mb-3 text-sm font-medium">{message}</p>
-      )}
+      {message && <p className="text-yellow-400 mb-3 text-sm font-medium">{message}</p>}
 
-      {/* Affichage du profil trouvé */}
       {userProfile && (
         <div className="flex flex-col items-center bg-gray-900 p-4 rounded-xl border border-gray-700 w-full text-center">
           <img
             src={userProfile.avatar_url || "/default.jpg"}
             alt={userProfile.username}
             className="w-24 h-24 rounded-full border-2 border-yellow-400 object-cover mb-3"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "/default.jpg";
-            }}
+            onError={(e) => ((e.target as HTMLImageElement).src = "/default.jpg")}
           />
           <p className="text-xl font-semibold text-yellow-400">{userProfile.username}</p>
           <p className="text-gray-300">
