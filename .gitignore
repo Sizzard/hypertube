@@ -64,5 +64,5 @@ data
 
 .*
 
-/backend/uploads
-!/backend/uploads/default.jpg
+/uploads/
+!/uploads/default.jpg
