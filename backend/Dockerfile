@@ -1,13 +1,13 @@
-FROM node:20
+FROM node:24
 
 # Setting up the work directory
 WORKDIR /app
 
 # COPY package.json
-COPY package.json  /app
+COPY package.json package-lock.json /app/
 
 # Installing dependencies
-RUN yarn install
+RUN npm ci
 
 # Copying all the files in our project
 COPY . .

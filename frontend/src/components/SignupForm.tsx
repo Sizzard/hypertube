@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-export default function SignupForm() {
+interface SignupFormProps {
+  onSuccess?: () => void;
+}
+
+export default function SignupForm({ onSuccess }: SignupFormProps) {
   const { lang } = useLanguage(); // Récupère la langue depuis le contexte
 
   const t = {

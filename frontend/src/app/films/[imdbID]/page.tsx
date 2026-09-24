@@ -8,6 +8,7 @@ import FilmComments from "@/components/FilmComments";
 
 interface FilmDetails {
   id: number;
+  imdb_id: string;
   title: string;
   release_date: string;
   runtime: string;
